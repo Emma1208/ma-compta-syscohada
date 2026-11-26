@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="./manifest.json">
+<title>Compta SYSCOHADA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#14213d;--mut:#5b6678;--line:#d5dbe3;--acc:#1f5f8b;--ok:#1d7a4d;--bad:#b3261e;--hd:#e8edf2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1620;--card:#18222e;--ink:#e6ebf2;--mut:#9aa7b8;--line:#2c3a4a;--acc:#6fb1e0;--ok:#5bc98f;--bad:#ff8a80;--hd:#223142;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1620;--card:#18222e;--ink:#e6ebf2;--mut:#9aa7b8;--line:#2c3a4a;--acc:#6fb1e0;--ok:#5bc98f;--bad:#ff8a80;--hd:#223142;color-scheme:dark}
+*{box-sizing:inherit}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif;padding:0 12px 40px;max-width:980px;margin:auto}
+h1{font:600 20px/1.2 Georgia,serif;margin:16px 0 4px}p.s{margin:0 0 12px;color:var(--mut);font-size:13px}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin-bottom:14px}
+nav button{background:none;border:0;padding:10px 12px;font:inherit;color:var(--mut);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button.on{color:var(--acc);border-color:var(--acc);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+input:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.w2{grid-column:span 2}.f{grid-column:1/-1}
+button.p{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:600 15px "Segoe UI",system-ui,sans-serif;cursor:pointer}
+button.g{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
+.msg{font-size:13px;min-height:20px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.t{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:var(--hd);text-align:left;padding:7px;white-space:nowrap}td{padding:6px 7px;border-top:1px solid var(--line)}
+.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+.k{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.k:first-child{border:0}
+.em{color:var(--mut);padding:18px 0;text-align:center}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.two .card{margin:0}.tb{margin-bottom:10px}#ph{display:none}.inv{border-color:var(--bad)!important;outline:2px solid var(--bad)}
+@media print{body *{visibility:hidden!important}#fiche-immo,#fiche-immo *{visibility:visible!important}#fiche-immo{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}#fiche-immo button{display:none!important}:root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mut:#333;--line:#999;--hd:#eee;--ok:#000;--bad:#000}nav,.np,form,button,textarea{display:none!important}body{max-width:none;padding:0}.card{border:0;padding:0}#ph{display:block;font-size:14px;margin-bottom:10px;border-bottom:2px solid #000;padding-bottom:6px}}
+</style></head><body>
+<h1>Comptabilité SYSCOHADA</h1>
+<p class="s">Connectez-vous avec votre Personal Access Token (PAT) GitHub pour synchroniser vos données sur votre dépôt.</p>
+<div class="card np tb" id="github-zone" style="margin-bottom:14px; background:var(--card); padding:12px; border:1px solid var(--line); border-radius:8px;">
+  <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+    <button class="g" id="gh-config-toggle" style="font-weight:600;">⚙️ Configurer GitHub BDD</button>
+    <button class="g" id="gh-sync-now" style="display:none;">🔄 Synchroniser</button>
+    <button class="g" id="gh-disconnect" style="display:none; color:var(--bad);">Déconnecter GitHub</button>
+    <span id="gh-user-status" style="font-size:12px; color:var(--mut);">Non connecté à GitHub (Stockage local uniquement)</span>
+  </div>
+  <div id="gh-config-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:10px;">
+      <label>Utilisateur / Org GitHub<input type="text" id="gh-owner" placeholder="ex: votre-pseudo"></label>
+      <label>Nom du Dépôt (Repo)<input type="text" id="gh-repo" placeholder="ex: mon-depot-compta"></label>
+      <label>Chemin du fichier<input type="text" id="gh-path" value="compta_db.json"></label>
+      <label>Personal Access Token (PAT)<input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx"></label>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="p" id="gh-save-config" style="width:auto; padding:6px 16px;">Enregistrer & Connexion</button>
+      <button class="g" id="gh-cancel-config" style="width:auto;">Fermer</button>
+    </div>
+  </div>
+</div>
+<nav id="nav"></nav><div class="np tb"><button class="g" id="pdf">Exporter en PDF</button> <button class="g" id="xlsx-export" style="margin-left:4px; font-weight:600; color:var(--ok); border-color:var(--ok);">📊 Exporter en Excel (.xlsx / CSV)</button> <span id="sy" style="font-size:12px;color:var(--mut);margin-left:8px"></span></div><div id="ph"></div><main id="v"></main>
+<script>
+const REF=`10 Capital
+101 Capital social
+104 Compte de l’exploitant
+105 Primes liées au capital
+11 Réserves
+12 Report à nouveau
+13 Résultat de l’exercice
+16 Emprunts et dettes assimilées
+162 Emprunts auprès des établissements de crédit
+21 Immobilisations incorporelles
+22 Terrains
+23 Bâtiments et installations
+24 Matériel, mobilier et actifs biologiques
+241 Matériel et outillage industriel
+244 Matériel et mobilier
+245 Matériel de transport
+26 Titres de participation
+27 Autres immobilisations financières
+28 Amortissements
+281 Amortissements des immobilisations incorporelles
+283 Amortissements des bâtiments
+284 Amortissements du matériel
+31 Marchandises
+32 Matières premières et fournitures liées
+33 Autres approvisionnements
+36 Produits finis
+39 Dépréciations des stocks
+40 Fournisseurs et comptes rattachés
+401 Fournisseurs, dettes en compte
+409 Fournisseurs débiteurs
+41 Clients et comptes rattachés
+411 Clients
+419 Clients créditeurs
+42 Personnel
+421 Personnel, avances et acomptes
+422 Personnel, rémunérations dues
+43 Organismes sociaux
+431 Sécurité sociale
+44 État et collectivités publiques
+441 État, impôt sur les bénéfices
+442 État, autres impôts et taxes
+443 État, TVA facturée
+444 État, TVA due ou crédit de TVA
+445 État, TVA récupérable
+447 État, impôts retenus à la source
+46 Associés et groupe
+462 Associés, comptes courants
+47 Débiteurs et créditeurs divers
+476 Charges constatées d’avance
+477 Produits constatés d’avance
+51 Valeurs à encaisser
+52 Banques
+521 Banques locales
+56 Banques, crédits de trésorerie
+57 Caisse
+571 Caisse siège social
+58 Virements internes
+60 Achats et variations de stocks
+601 Achats de marchandises
+602 Achats de matières premières
+604 Achats stockés de matières consommables
+605 Autres achats
+61 Transports
+62 Services extérieurs A
+622 Locations et charges locatives
+624 Entretien, réparations et maintenance
+625 Primes d’assurance
+628 Frais de télécommunications
+63 Services extérieurs B
+631 Frais bancaires
+632 Rémunérations d’intermédiaires et de conseils
+633 Frais de formation du personnel
+64 Impôts et taxes
+65 Autres charges
+66 Charges de personnel
+661 Rémunérations directes, personnel national
+664 Charges sociales
+67 Frais financiers et charges assimilées
+671 Intérêts des emprunts
+68 Dotations aux amortissements
+681 Dotations aux amortissements d’exploitation
+69 Dotations aux provisions et dépréciations
+70 Ventes
+701 Ventes de marchandises
+702 Ventes de produits finis
+705 Travaux facturés
+706 Services vendus
+707 Produits accessoires
+71 Subventions d’exploitation
+75 Autres produits
+77 Revenus financiers et assimilés
+78 Transferts de charges
+79 Reprises de provisions
+81 Valeurs comptables des cessions d’immobilisations
+82 Produits des cessions d’immobilisations
+83 Charges hors activités ordinaires
+84 Produits hors activités ordinaires
+89 Impôts sur le résultat
+891 Impôts sur les bénéfices de l’exercice`.split("\n").reduce((o,l)=>{const i=l.indexOf(" ");o[l.slice(0,i)]=l.slice(i+1);return o},{});
+Object.assign(REF,`102 Capital par dotation et complément de dotation
+103 Capital personnel
+106 Écarts de réévaluation
+109 Actionnaires, capital souscrit non appelé
+111 Réserve légale
+112 Réserves statutaires ou contractuelles
+113 Réserves réglementées
+118 Autres réserves
+121 Report à nouveau créditeur
+129 Report à nouveau débiteur
+130 Résultat en instance d’affectation
+131 Résultat net de l’exercice : bénéfice
+139 Résultat net de l’exercice : perte
+14 Subventions d’investissement
+141 Subventions d’équipement
+15 Provisions réglementées et fonds assimilés
+151 Amortissements dérogatoires
+161 Emprunts obligataires
+163 Avances reçues de l’État
+164 Avances reçues et comptes courants bloqués
+165 Dépôts et cautionnements reçus
+166 Intérêts courus
+168 Autres emprunts et dettes
+17 Dettes de location-acquisition
+172 Dettes de crédit-bail immobilier
+173 Dettes de crédit-bail mobilier
+18 Dettes liées à des participations et comptes de liaison
+181 Dettes liées à des participations
+19 Provisions pour risques et charges
+191 Provisions pour litiges
+195 Provisions pour impôts
+196 Provisions pour pensions et obligations similaires
+198 Autres provisions pour risques et charges
+20 Charges immobilisées
+211 Frais de développement
+212 Brevets, licences, concessions et droits similaires
+213 Logiciels et sites internet
+214 Marques
+215 Fonds commercial
+216 Droit au bail
+218 Autres droits et valeurs incorporels
+221 Terrains agricoles et forestiers
+222 Terrains nus
+223 Terrains bâtis
+224 Travaux de mise en valeur des terrains
+231 Bâtiments industriels, agricoles, administratifs et commerciaux sur sol propre
+232 Bâtiments industriels, agricoles, administratifs et commerciaux sur sol d’autrui
+233 Ouvrages d’infrastructure
+234 Aménagements, agencements et installations techniques
+235 Aménagements de bureaux
+242 Matériel et outillage agricole
+243 Matériel d’emballage récupérable et identifiable
+246 Actifs biologiques
+247 Agencements, aménagements du matériel et biens divers
+248 Autres matériels et mobiliers
+25 Avances et acomptes versés sur immobilisations
+261 Titres de participation
+271 Prêts et créances non commerciales
+274 Prêts au personnel
+275 Dépôts et cautionnements versés
+282 Amortissements des terrains
+29 Dépréciations des immobilisations
+311 Marchandises A
+312 Marchandises B
+321 Matières A
+322 Matières B
+331 Matières consommables
+332 Fournitures d’atelier et d’usine
+333 Fournitures de magasin
+334 Fournitures de bureau
+335 Emballages
+34 Produits en cours
+35 Services en cours
+37 Produits intermédiaires et résiduels
+38 Stocks en cours de route, en consignation ou en dépôt
+402 Fournisseurs, effets à payer
+408 Fournisseurs, factures non parvenues
+412 Clients, effets à recevoir
+416 Créances clients litigieuses ou douteuses
+418 Clients, produits non encore facturés
+423 Personnel, oppositions, saisies-arrêts
+424 Personnel, œuvres sociales
+425 Représentants du personnel
+427 Personnel, dépôts
+428 Personnel, charges à payer et produits à recevoir
+432 Caisses de retraite complémentaire
+433 Autres organismes sociaux
+438 Organismes sociaux, charges à payer et produits à recevoir
+446 État, autres taxes sur le chiffre d’affaires
+448 État, charges à payer et produits à recevoir
+449 État, créances et dettes diverses
+45 Organismes internationaux
+461 Associés, opérations sur le capital
+465 Associés, dividendes à payer
+466 Groupe, comptes courants
+471 Débiteurs et créditeurs divers
+472 Créances et dettes sur cessions d’immobilisations
+478 Écarts de conversion actif
+479 Écarts de conversion passif
+48 Créances et dettes hors activités ordinaires
+481 Fournisseurs d’investissements
+482 Fournisseurs d’investissements, effets à payer
+49 Dépréciations et provisions pour risques à court terme
+50 Titres de placement
+511 Effets à encaisser
+512 Effets à l’encaissement
+513 Chèques à encaisser
+514 Chèques à l’encaissement
+515 Cartes de crédit à encaisser
+522 Banques autres États de la zone
+523 Banques autres États
+524 Banques, escomptes
+526 Banques, intérêts courus
+53 Établissements financiers et assimilés
+531 Chèques postaux
+532 Trésor
+54 Instruments de trésorerie
+55 Instruments de monnaie électronique
+561 Crédits de trésorerie
+565 Escompte de crédits ordinaires
+572 Caisse succursale A
+573 Caisse succursale B
+581 Régies d’avances
+585 Virements de fonds
+588 Autres virements internes
+59 Dépréciations et provisions pour risques à court terme financiers
+603 Variations des stocks de biens achetés
+608 Achats d’emballages
+611 Transports sur achats
+612 Transports sur ventes
+613 Transports pour le compte de tiers
+614 Transports du personnel
+618 Autres frais de transport
+621 Sous-traitance générale
+623 Redevances de location-acquisition
+626 Études, recherches et documentation
+627 Publicité, publications, relations publiques
+634 Redevances pour brevets, licences, logiciels
+635 Cotisations
+637 Rémunérations de personnel extérieur à l’entité
+638 Autres charges externes
+641 Impôts et taxes directs
+645 Impôts et taxes indirects
+646 Droits d’enregistrement
+647 Pénalités et amendes fiscales
+648 Autres impôts et taxes
+651 Pertes sur créances clients et autres débiteurs
+654 Valeurs comptables des cessions courantes d’immobilisations
+656 Perte de change sur créances et dettes commerciales
+657 Pénalités et amendes pénales
+658 Charges diverses
+659 Charges pour dépréciations et provisions pour risques à court terme d’exploitation
+662 Rémunérations directes versées au personnel non national
+663 Indemnités forfaitaires versées au personnel
+666 Rémunérations et charges sociales de l’exploitant individuel
+668 Autres charges sociales
+673 Escomptes accordés
+674 Autres intérêts
+676 Pertes de change financières
+678 Pertes et charges sur risques financiers
+679 Charges pour dépréciations et provisions pour risques financiers
+691 Dotations aux provisions et dépréciations d’exploitation
+697 Dotations aux provisions et dépréciations financières
+703 Ventes de produits intermédiaires
+704 Ventes de produits résiduels
+721 Production immobilisée, immobilisations incorporelles
+722 Production immobilisée, immobilisations corporelles
+73 Variations de stocks de biens et de services produits
+751 Profits sur créances clients et autres débiteurs
+754 Produits des cessions courantes d’immobilisations
+756 Gains de change sur créances et dettes commerciales
+758 Produits divers
+759 Reprises de charges pour dépréciations et provisions pour risques à court terme d’exploitation
+771 Intérêts de prêts et créances diverses
+772 Revenus de participations et autres titres immobilisés
+773 Escomptes obtenus
+774 Revenus de placement
+776 Gains de change financiers
+778 Gains sur risques financiers
+779 Reprises de provisions financières
+781 Transferts de charges d’exploitation
+787 Transferts de charges financières
+791 Reprises de provisions et dépréciations d’exploitation
+797 Reprises de provisions et dépréciations financières
+85 Dotations hors activités ordinaires
+86 Reprises hors activités ordinaires
+87 Participation des travailleurs
+88 Subventions d’équilibre
+892 Rappel d’impôts sur résultats antérieurs
+895 Impôt minimum forfaitaire
+899 Dégrèvements d’impôts sur résultats antérieurs`.split("\n").reduce((o,l)=>{const i=l.indexOf(" ");o[l.slice(0,i)]=l.slice(i+1);return o},{}));
+let S={j:[],im:[],c:{},st:[],co:""};try{S=Object.assign(S,JSON.parse(localStorage.getItem("compta")||"{}"))}catch(e){}
+let dbDoc=null,tm,sync="Données locales uniquement : configurez GitHub pour activer la synchronisation.";
+const upd=()=>{const e=$("#sy");if(e)e.textContent=sync};
+const save=()=>{S.ts=Date.now();try{localStorage.setItem("compta",JSON.stringify(S))}catch(e){}
+if(window.GitHubBridge && window.GitHubBridge.isConnected()){clearTimeout(tm);tm=setTimeout(()=>window.GitHubBridge.pushToGitHub(),1000)}};
+const $=s=>document.querySelector(s),f2=x=>(+x||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function ti(c){c=String(c).trim();if(S.c[c])return S.c[c];for(let n=Math.min(c.length,6);n>=2;n--){const p=c.slice(0,n);if(S.c[p])return S.c[p];if(REF[p])return REF[p]}return""}
+const tabs=["Saisie","Journal","Balance","TVA","Immobilisations","Stocks","Clients","Fournisseurs","Bilan","Compte de résultat","Flux de trésorerie","Paramètres","Données"];let tab=0,msg="",im="",sm="",dm="",fiche=-1;const nb=v=>+String(v).replace(",",".")||0;
+$("#nav").innerHTML=tabs.map((t,i)=>`<button data-i="${i}">${t}</button>`).join("");
+$("#nav").onclick=e=>{if(e.target.dataset.i){tab=+e.target.dataset.i;msg="";draw()}};
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")},fd=s=>s?String(s).split("-").reverse().join("/"):"",td=s=>{const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s).trim());if(!m)return null;const d=new Date(+m[3],+m[2]-1,+m[1]);return d.getDate()==+m[1]&&d.getMonth()==+m[2]-1?m[3]+"-"+m[2]+"-"+m[1]:null};
+function pieces(){const m={};S.j.forEach(l=>{m[l.p]=(m[l.p]||0)+l.db-l.cr});return m}
+function saisie(){return `<div class="card"><p class="msg ${msg.startsWith("!")?"bad":"ok"}" id="fm" role="alert">${esc(msg.replace(/^!/,""))}</p><form id="fs" novalidate>
+<label>Date (jj/mm/aaaa)<input name="d" id="dt" inputmode="numeric" placeholder="jj/mm/aaaa" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" title="jj/mm/aaaa" value="${fd(today())}" required></label>
+<label>Numéro de pièce<input name="p" required value="${esc(sessionStorage.p||"")}"></label>
+<label>Compte<input name="c" inputmode="numeric" required autocomplete="off" id="cc"></label>
+<label class="w2">Intitulé<input name="t" id="tt" placeholder="Rempli automatiquement" required></label>
+<label class="f">Libellé<input name="l"></label>
+<label class="w2">Client ou fournisseur (comptes 40 et 41)<input name="tr" list="tl" autocomplete="off"></label><label>Échéance (jj/mm/aaaa)<input name="ec" id="ec" inputmode="numeric" maxlength="10" placeholder="automatique"></label><datalist id="tl">${[...new Set(S.j.filter(l=>l.tr).map(l=>l.tr))].map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+<label>Montant débité<input name="db" inputmode="decimal"></label>
+<label>Montant crédité<input name="cr" inputmode="decimal"></label>
+<div class="f"><button class="p">Ajouter la ligne</button></div></form></div>`}
+function journal(){const b=pieces();return `<div class="card t">${S.j.length?`<table><thead><tr><th>Date</th><th>Pièce</th><th>Compte</th><th>Intitulé</th><th>Libellé</th><th class="n">Débit</th><th class="n">Crédit</th><th>Pièce</th><th></th></tr></thead><tbody>`+S.j.map((l,i)=>{const e=Math.round(b[l.p]*100)/100;return `<tr><td>${fd(l.d)}</td><td>${esc(l.p)}</td><td>${esc(l.c)}</td><td>${esc(l.t)}${l.tr?" ("+esc(l.tr)+")":""}</td><td>${esc(l.l)}</td><td class="n">${l.db?f2(l.db):""}</td><td class="n">${l.cr?f2(l.cr):""}</td><td class="${e?"bad":"ok"}">${e?"écart "+f2(e):"équilibrée"}</td><td><button class="g" data-del="${i}" aria-label="Supprimer">✕</button></td></tr>`}).join("")+`</tbody></table>`:`<p class="em">Aucune écriture. Commencez dans l’onglet Saisie.</p>`}</div>`}
+function bal(){const m={};S.j.forEach(l=>{const a=m[l.c]||(m[l.c]={t:l.t,d:0,c:0});a.d+=l.db;a.c+=l.cr});const k=Object.keys(m).sort();let D=0,C=0,SD=0,SC=0;
+const rows=k.map(c=>{const a=m[c],s=a.d-a.c;D+=a.d;C+=a.c;s>0?SD+=s:SC-=s;return `<tr><td>${esc(c)}</td><td>${esc(a.t)}</td><td class="n">${f2(a.d)}</td><td class="n">${f2(a.c)}</td><td class="n">${s>0?f2(s):""}</td><td class="n">${s<0?f2(-s):""}</td></tr>`}).join("");
+return `<div class="card t">${k.length?`<table><thead><tr><th>Compte</th><th>Intitulé</th><th class="n">Débit</th><th class="n">Crédit</th><th class="n">Solde débiteur</th><th class="n">Solde créditeur</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2">Total</td><td class="n">${f2(D)}</td><td class="n">${f2(C)}</td><td class="n">${f2(SD)}</td><td class="n">${f2(SC)}</td></tr></tfoot></table>`:`<p class="em">La balance se remplit à partir du journal.</p>`}</div>`}
+function tva(){const s=(p,x)=>S.j.filter(l=>l.c.startsWith(p)).reduce((a,l)=>a+(x?l.cr-l.db:l.db-l.cr),0);const a=s("443",1),b=s("445",0),n=a-b;
+return `<div class="card"><div class="k"><span>TVA collectée (compte 443)</span><b>${f2(a)}</b></div><div class="k"><span>TVA déductible (compte 445)</span><b>${f2(b)}</b></div><div class="k"><span>${n>=0?"TVA à payer":"Crédit de TVA à reporter"}</span><b>${f2(Math.abs(n))}</b></div></div>`}
+function planImmo(x){
+ const debut=x.ms||x.d, duree=Math.max(1,Number(x.n)||1), base=Math.max(0,(Number(x.v)||0)-(Number(x.vr)||0));
+ const total=duree*12, date=new Date(debut+"T00:00:00"), debutIndex=date.getFullYear()*12+date.getMonth();
+ let cum=0,parAn={};
+ for(let i=0;i<total;i++){
+  const idx=debutIndex+i,an=Math.floor(idx/12),montant=i===total-1?base-cum:base/total;
+  cum+=montant;parAn[an]=(parAn[an]||0)+montant;
+ }
+ let cumul=0;return Object.keys(parAn).map(y=>{const dot=Math.round(parAn[y]*100)/100;cumul=Math.min(base,Math.round((cumul+dot)*100)/100);return {an:+y,dot,cum:cumul,vnc:Math.max(Number(x.vr)||0,Math.round(((Number(x.v)||0)-cumul)*100)/100)}});
+}
+function immo(){
+ const an=new Date().getFullYear();let totalAn=0;
+ const rows=S.im.map((x,i)=>{const pl=planImmo(x),ligne=pl.find(z=>z.an===an),cum=pl.filter(z=>z.an<=an).slice(-1)[0],vnc=cum?cum.vnc:Number(x.v)||0;totalAn+=ligne?ligne.dot:0;
+ return `<tr><td>${esc(x.nm)}</td><td>${fd(x.d)}</td><td>${esc(x.c)}</td><td class="n">${f2(x.v)}</td><td class="n">${x.n} ans</td><td class="n">${f2(ligne?ligne.dot:0)}</td><td class="n">${f2(vnc)}</td><td><button class="g" data-fiche="${i}">Voir la fiche</button> <button class="g" data-di="${i}" aria-label="Supprimer">✕</button></td></tr>`}).join("");
+ const x=fiche>=0?S.im[fiche]:null;
+ const detail=x?(()=>{const pl=planImmo(x),hist=S.j.filter(l=>l.imId===x.id||(x.p&&l.p===x.p));return `<div class="card" id="fiche-immo"><h3>Fiche d’immobilisation</h3><div class="two"><div><div class="k"><span>Identification</span><b>${esc(x.id||x.p||("IM-"+(fiche+1)))}</b></div><div class="k"><span>Désignation</span><b>${esc(x.nm)}</b></div><div class="k"><span>Compte d’immobilisation</span><b>${esc(x.c)} — ${esc(ti(x.c)||"")}</b></div><div class="k"><span>Date d’acquisition</span><b>${fd(x.d)}</b></div><div class="k"><span>Mise en service</span><b>${fd(x.ms||x.d)}</b></div><div class="k"><span>Valeur d’acquisition</span><b>${f2(x.v)}</b></div></div><div><div class="k"><span>Durée d’utilisation</span><b>${x.n} ans</b></div><div class="k"><span>Valeur résiduelle</span><b>${f2(x.vr||0)}</b></div><div class="k"><span>Base amortissable</span><b>${f2(Math.max(0,x.v-(x.vr||0)))}</b></div><div class="k"><span>Mode</span><b>Linéaire, prorata mensuel</b></div><div class="k"><span>Compte de contrepartie</span><b>${esc(x.pc||"—")} — ${esc(x.pt||"")}</b></div><div class="k"><span>Valeur nette actuelle</span><b>${f2((pl.filter(z=>z.an<=an).slice(-1)[0]||{vnc:x.v}).vnc)}</b></div></div></div><h4>Plan d’amortissement</h4><div class="t"><table><thead><tr><th>Exercice</th><th class="n">Dotation</th><th class="n">Amortissements cumulés</th><th class="n">Valeur nette comptable</th></tr></thead><tbody>${pl.map(z=>`<tr><td>${z.an}</td><td class="n">${f2(z.dot)}</td><td class="n">${f2(z.cum)}</td><td class="n">${f2(z.vnc)}</td></tr>`).join("")}</tbody></table></div><h4>Écritures comptables liées</h4>${hist.length?`<div class="t"><table><thead><tr><th>Date</th><th>Pièce</th><th>Compte</th><th>Libellé</th><th class="n">Débit</th><th class="n">Crédit</th></tr></thead><tbody>${hist.map(l=>`<tr><td>${fd(l.d)}</td><td>${esc(l.p)}</td><td>${esc(l.c)}</td><td>${esc(l.l||"")}</td><td class="n">${l.db?f2(l.db):""}</td><td class="n">${l.cr?f2(l.cr):""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="em">Aucune écriture liée retrouvée.</p>`}<p><button class="g" id="print-fiche">Imprimer la fiche</button> <button class="g" id="close-fiche">Fermer la fiche</button></p></div>`})():"";
+ return `<div class="card"><h3>Enregistrer une immobilisation</h3><p class="msg">L’acquisition sera automatiquement enregistrée dans le journal. Choisissez le compte de contrepartie.</p><p class="msg ${im.startsWith("!")?"bad":"ok"}">${esc(im.replace(/^!/,""))}</p><form id="fi">
+ <label class="w2">Désignation<input name="nm" required></label>
+ <label>Date d’acquisition<input type="date" name="d" value="${today()}" required></label>
+ <label>Date de mise en service<input type="date" name="ms" value="${today()}" required></label>
+ <label>Compte d’immobilisation<input name="c" inputmode="numeric" list="comptes-immo" required value="245000"></label>
+ <label>Valeur d’acquisition<input name="v" inputmode="decimal" required></label>
+ <label>Valeur résiduelle<input name="vr" inputmode="decimal" value="0"></label>
+ <label>Durée d’utilisation (ans)<input name="n" type="number" min="1" step="1" required value="5"></label>
+ <label>Numéro de pièce<input name="p" required value="IM-${an}-${String(S.im.length+1).padStart(3,"0")}"></label>
+ <label>Compte de contrepartie<input name="pc" inputmode="numeric" list="comptes-contrepartie" required value="481000"></label>
+ <label class="w2">Intitulé du compte de contrepartie<input name="pt" required value="${esc(ti("481000"))}"></label>
+ <label class="w2">Libellé de l’écriture<input name="lib" value="Acquisition d’immobilisation"></label>
+ <datalist id="comptes-immo"><option value="211000"><option value="213000"><option value="221000"><option value="231000"><option value="234000"><option value="241000"><option value="244000"><option value="245000"><option value="248000"></datalist>
+ <datalist id="comptes-contrepartie"><option value="481000"><option value="401000"><option value="521000"><option value="571000"><option value="462000"></datalist>
+ <div class="f"><button class="p">Enregistrer et générer l’écriture</button></div></form></div>
+ <div class="card t">${S.im.length?`<h3>Registre des immobilisations</h3><table><thead><tr><th>Désignation</th><th>Date</th><th>Compte</th><th class="n">Valeur</th><th class="n">Durée</th><th class="n">Dotation ${an}</th><th class="n">Valeur nette</th><th>Actions</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="5">Total des dotations de ${an}</td><td class="n">${f2(totalAn)}</td><td></td><td></td></tr></tfoot></table><p><button class="g" id="dot">Passer les dotations de ${an} (${f2(totalAn)}) au journal</button></p><p class="msg ok">${esc(im)}</p>`:`<p class="em">Aucune immobilisation enregistrée.</p>`}</div>${detail}`;
+}
+function stocks(){const T=S.st.reduce((a,x)=>a+x.q*x.u,0),o=S.st.map((x,i)=>`<option value="${i}">${esc(x.nm)}</option>`).join("");
+return `<div class="card"><h3>Créer un article et enregistrer son stock initial</h3><p class="msg">Le stock initial génère une écriture au journal : débit du compte de stock et crédit du compte de contrepartie choisi.</p><form id="fst"><label class="w2">Article<input name="nm" required></label><label>Compte de stock (classe 3)<input name="c" inputmode="numeric" required value="311000"></label><label>Quantité initiale<input name="q" inputmode="decimal" required></label><label>Coût unitaire<input name="u" inputmode="decimal" required></label><label>Date du mouvement<input type="date" name="d" value="${today()}" required></label><label>Numéro de pièce<input name="p" required placeholder="ST-001"></label><label>Compte de contrepartie<input name="pc" inputmode="numeric" list="comptes-contrepartie" value="401000" required></label><label class="w2">Intitulé de la contrepartie<input name="pt" value="${esc(ti("401000"))}" required></label><datalist id="comptes-contrepartie"><option value="401000"><option value="481000"><option value="521000"><option value="571000"><option value="603000"></datalist><div class="f"><button class="p">Créer l’article et générer l’écriture</button></div></form><p class="msg ${sm.startsWith("!")?"bad":"ok"}">${esc(sm.replace(/^!/,""))}</p></div>
+${S.st.length?`<div class="card"><h3>Enregistrer un mouvement de stock</h3><p class="msg">Entrée : débit du stock et crédit du compte de contrepartie. Sortie : débit du compte 603000 et crédit du stock. Les sorties sont valorisées au coût moyen pondéré.</p><form id="fmv"><label class="w2">Article<select name="i">${o}</select></label><label>Mouvement<select name="t"><option value="e">Entrée / achat</option><option value="s">Sortie / consommation</option></select></label><label>Quantité<input name="q" inputmode="decimal" required></label><label>Coût unitaire (entrée)<input name="u" inputmode="decimal"></label><label>Date<input type="date" name="d" value="${today()}" required></label><label>Numéro de pièce<input name="p" required placeholder="ST-002"></label><label class="w2" id="stock-pc-wrap">Compte de contrepartie (entrée)<input name="pc" inputmode="numeric" list="comptes-contrepartie" value="401000"></label><label class="w2" id="stock-pt-wrap">Intitulé de la contrepartie<input name="pt" value="${esc(ti("401000"))}"></label><div class="f"><button class="p">Enregistrer et générer l’écriture</button></div></form><p class="msg ${sm.startsWith("!")?"bad":"ok"}">${esc(sm.replace(/^!/,""))}</p></div>`:""}
+<div class="card t">${S.st.length?`<h3>État des stocks</h3><table><thead><tr><th>Article</th><th>Compte</th><th class="n">Quantité</th><th class="n">Coût unitaire moyen</th><th class="n">Valeur</th><th></th></tr></thead><tbody>${S.st.map((x,i)=>`<tr><td>${esc(x.nm)}</td><td>${esc(x.c)}</td><td class="n">${x.q}</td><td class="n">${f2(x.u)}</td><td class="n">${f2(x.q*x.u)}</td><td><button class="g" data-ds="${i}" aria-label="Supprimer">✕</button></td></tr>`).join("")}</tbody><tfoot><tr><td colspan="4">Valeur totale du stock</td><td class="n">${f2(T)}</td><td></td></tr></tfoot></table>`:`<p class="em">Aucun article en stock.</p>`}</div>`}
+function bilan(){const m={};J("",(S.p||{}).df).forEach(l=>m[l.c]=(m[l.c]||0)+l.db-l.cr);const A={i:0,s:0,c:0,t:0},P={k:0,f:0,e:0,t:0};let R=0;
+Object.keys(m).forEach(c=>{const s=m[c],k=c[0],p=+c.slice(0,2);if(k=="1"){p>=16&&p<=19?P.f-=s:P.k-=s}else if(k=="2")A.i+=s;else if(k=="3")A.s+=s;else if(k=="4"){s>0?A.c+=s:P.e-=s}else if(k=="5"){s>0?A.t+=s:P.t-=s}else if("678".includes(k))R-=s});
+P.k+=R;const TA=A.i+A.s+A.c+A.t,TP=P.k+P.f+P.e+P.t,r=(l,v)=>`<div class="k"><span>${l}</span><b>${f2(v)}</b></div>`,ec=Math.round((TA-TP)*100)/100;
+return `<div class="two"><div class="card"><b>Actif</b>${r("Immobilisations nettes",A.i)}${r("Stocks nets",A.s)}${r("Créances et autres actifs",A.c)}${r("Trésorerie actif",A.t)}${r("Total actif",TA)}</div><div class="card"><b>Passif</b>${r("Capitaux propres",P.k)}${r("Dettes financières",P.f)}${r("Dettes d’exploitation",P.e)}${r("Trésorerie passif",P.t)}${r("Total passif",TP)}</div></div><p class="msg ${ec?"bad":"ok"}">Résultat de l’exercice inclus dans les capitaux propres : ${f2(R)}. ${ec?"Écart actif moins passif : "+f2(ec)+". Vérifiez l’équilibre des pièces dans le journal.":"Le bilan est équilibré."}</p>`}
+function donnees(){return `<div class="card"><p><button class="p" id="dl">Télécharger la sauvegarde</button> <label class="g" style="display:inline-block;padding:10px;border:1px solid var(--line);border-radius:6px;cursor:pointer">Importer un fichier<input type="file" id="fl" accept=".json" style="display:none"></label></p><p class="s" style="color:var(--mut);font-size:13px">Si le téléchargement ne démarre pas, copiez le texte ci-dessous et collez-le plus tard dans la même zone.</p><textarea id="ta" rows="6" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px">${esc(JSON.stringify(S))}</textarea><p><button class="g" id="rs">Restaurer depuis le texte</button> <button class="g" id="rz">Tout effacer</button></p><p class="msg ${dm.startsWith("!")?"bad":"ok"}">${esc(dm.replace(/^!/,""))}</p></div>`}
+const P=()=>S.p||(S.p={dev:"USD"}),J=(a,b)=>S.j.filter(l=>(!a||l.d>=a)&&(!b||l.d<=b)),G=(L,ps,sg)=>L.filter(l=>ps.some(p=>l.c.startsWith(p))).reduce((a,l)=>a+sg*(l.cr-l.db),0),pr=(l,v)=>`<div class="k"><span>${l}</span><b>${f2(v)}</b></div>`;
+function params(){const p=P(),F=[["nm","Raison sociale","text","w2"],["fj","Forme juridique (SARL, SA)"],["cap","Capital social"],["rccm","N° RCCM"],["nif","Id. nat. ou NIF"],["adr","Adresse","text","w2"],["tel","Téléphone"],["em","E-mail"],["gr","Gérant ou directeur"],["dev","Devise"],["dl","Délai de paiement par défaut (jours)"],["dd","Début de l’exercice","date"],["df","Fin de l’exercice","date"]];
+return `<div class="card"><form id="fp" onsubmit="return false">${F.map(([n,l,t,c])=>`<label class="${c||""}">${l}<input name="${n}" type="${t||"text"}" value="${esc(p[n]||"")}"></label>`).join("")}</form><p class="msg">Ces informations figurent dans l’en-tête des PDF. Les dates de l’exercice limitent le compte de résultat, le flux de trésorerie et le bilan.</p></div>`}
+function resultat(){const p=P(),L=J(p.dd,p.df),c=(ps)=>G(L,ps,-1),v=(ps)=>G(L,ps,1);
+const a=v(["70"]),b=v(["71","72","73","75"]),d=v(["781","791"]),e=c(["60"]),f=c(["61"]),g=c(["62","63"]),h=c(["64"]),i=c(["65"]),j=c(["66"]),k=c(["68","691"]),RE=a+b+d-e-f-g-h-i-j-k;
+const pf=v(["77","787","797"]),cf=c(["67","697"]),RF=pf-cf,ph=v(["82","84","86","88"]),ch=c(["81","83","85","87"]),RH=ph-ch,im=c(["89"]),RN=RE+RF+RH-im;
+return `<div class="card"><b>Exploitation</b>${pr("Ventes et services vendus (70)",a)}${pr("Subventions, production immobilisée et autres produits (71, 72, 73, 75)",b)}${pr("Reprises et transferts de charges (781, 791)",d)}${pr("Achats et variations de stocks (60)",-e)}${pr("Transports (61)",-f)}${pr("Services extérieurs (62, 63)",-g)}${pr("Impôts et taxes (64)",-h)}${pr("Autres charges (65)",-i)}${pr("Charges de personnel (66)",-j)}${pr("Dotations aux amortissements et provisions (68, 691)",-k)}${pr("Résultat d’exploitation",RE)}<b>Financier</b>${pr("Produits financiers (77, 787, 797)",pf)}${pr("Charges financières (67, 697)",-cf)}${pr("Résultat financier",RF)}<b>Hors activités ordinaires</b>${pr("Produits HAO (82, 84, 86, 88)",ph)}${pr("Charges HAO (81, 83, 85, 87)",-ch)}${pr("Résultat HAO",RH)}<b>Résultat</b>${pr("Impôts sur le résultat (89)",-im)}${pr("Résultat net",RN)}<p class="msg">${p.dd||p.df?"Période du "+(fd(p.dd)||"début")+" au "+(fd(p.df)||"fin")+".":"Toutes les écritures du journal sont incluses. Renseignez l’exercice dans Paramètres pour limiter la période."}</p></div>`}
+function flux(){const p=P(),L=J(p.dd,p.df),by={},F={o:{},i:{},f:{}},t5=l=>l.c[0]=="5";L.forEach(l=>(by[l.p]=by[l.p]||[]).push(l));
+Object.values(by).forEach(ls=>{const T=ls.filter(t5).reduce((a,l)=>a+l.db-l.cr,0);if(Math.abs(T)<.005)return;const cd=ls.filter(l=>!t5(l)&&(l.db-l.cr)*T<0),W=cd.reduce((a,l)=>a+Math.abs(l.db-l.cr),0);if(!W)return;cd.forEach(l=>{const q=l.c.slice(0,2),k=l.c[0]=="2"?"i":(l.c[0]=="1"||q=="46")?"f":"o";F[k][q]=(F[k][q]||0)+T*Math.abs(l.db-l.cr)/W})});
+const sec=(t,n,o)=>{const ks=Object.keys(o).sort(),s=ks.reduce((a,k)=>a+o[k],0);return{h:`<b>${t}</b>${ks.map(k=>pr(esc(REF[k]||"Compte "+k)+" ("+k+")",o[k])).join("")}${pr(n,s)}`,s}},A=sec("Activités d’exploitation","Flux des activités d’exploitation",F.o),B=sec("Activités d’investissement","Flux des activités d’investissement",F.i),C=sec("Activités de financement","Flux des activités de financement",F.f);
+const ou=S.j.filter(l=>p.dd&&l.d<p.dd&&t5(l)).reduce((a,l)=>a+l.db-l.cr,0),va=A.s+B.s+C.s,cl=S.j.filter(l=>(!p.df||l.d<=p.df)&&t5(l)).reduce((a,l)=>a+l.db-l.cr,0),ec=Math.round((cl-ou-va)*100)/100;
+return `<div class="card">${A.h}${B.h}${C.h}<b>Trésorerie</b>${pr("Trésorerie d’ouverture",ou)}${pr("Variation de trésorerie",va)}${pr("Trésorerie de clôture",ou+va)}<p class="msg ${ec?"bad":"ok"}">${ec?"Écart de "+f2(ec)+" avec le solde des comptes de classe 5 : une pièce de trésorerie est peut-être déséquilibrée.":"Le flux correspond au solde des comptes de trésorerie."}</p></div>`}
+async function pdf(){const jp=window.jspdf;if(!jp){window.print();return}const p=P(),land=[1,4,6,7].includes(tab),doc=new jp.jsPDF({orientation:land?"l":"p",unit:"pt",format:"a4"}),cl=s=>String(s).replace(/[\u202f\u00a0]/g," ").replace(/\s+/g," ").trim(),H=doc.internal.pageSize.getHeight(),W=doc.internal.pageSize.getWidth();let y=40;
+const tx=(t,sz,b)=>{doc.setFont("helvetica",b?"bold":"normal");doc.setFontSize(sz);const ls=doc.splitTextToSize(cl(t),W-80);if(y+ls.length*sz>H-40){doc.addPage();y=40}doc.text(ls,40,y);y+=ls.length*(sz+2)};
+tx(p.nm||"Société",14,1);[(p.fj||"")+(p.cap?", capital "+p.cap+" "+(p.dev||""):""),p.adr,[p.rccm&&"RCCM "+p.rccm,p.nif&&"NIF "+p.nif,p.tel,p.em].filter(Boolean).join("   ")].filter(x=>x&&x.trim()).forEach(t=>tx(t,9));
+y+=8;tx(tabs[tab]+(p.dd||p.df?" du "+fd(p.dd||"")+" au "+fd(p.df||""):""),12,1);tx("Montants en "+(p.dev||"USD")+", édité le "+new Date().toLocaleDateString("fr-FR"),8);y+=6;
+document.querySelectorAll("#v .card").forEach(cd=>{let rows=[];const fl=()=>{if(rows.length){doc.autoTable({startY:y,body:rows,theme:"plain",styles:{fontSize:9,cellPadding:3},columnStyles:{1:{halign:"right"}},margin:{left:40,right:40},didParseCell:d=>{if(/^(Total|Résultat|Flux|Variation|Trésorerie de)/.test(d.row.raw[0]))d.cell.styles.fontStyle="bold"}});y=doc.lastAutoTable.finalY+8;rows=[]}};
+[...cd.children].forEach(e=>{if(e.tagName=="FORM"||e.tagName=="TEXTAREA"||(e.tagName=="P"&&e.querySelector("button,input")))return;if(e.classList.contains("k")){rows.push([cl(e.children[0].textContent),cl(e.children[1].textContent)]);return}fl();
+if(e.tagName=="B"){y+=4;tx(e.textContent,10,1)}else if(e.classList.contains("msg")||e.classList.contains("em")){y+=4;tx(e.textContent,9)}else if(e.tagName=="TABLE"){const t=e.cloneNode(true),ths=[...t.querySelectorAll("thead th")],dr=ths.map((h,i)=>h.textContent.trim()?-1:i).filter(i=>i>=0).reverse();dr.forEach(i=>{t.querySelectorAll("tbody tr").forEach(r=>r.cells[i]&&r.deleteCell(i));ths[i].remove()});t.querySelectorAll("tfoot tr").forEach(r=>{const l=r.cells[r.cells.length-1];if(l&&!l.textContent.trim()&&dr.length)l.remove()});
+const th=[...t.querySelectorAll("thead th")],cs={};th.forEach((h,i)=>{if(h.classList.contains("n"))cs[i]={halign:"right"}});
+doc.autoTable({startY:y,head:[th.map(h=>cl(h.textContent))],body:[...t.querySelectorAll("tbody tr")].map(r=>[...r.cells].map(c=>cl(c.textContent))),foot:[...t.querySelectorAll("tfoot tr")].map(r=>[...r.cells].map(c=>({content:cl(c.textContent),colSpan:c.colSpan,styles:{halign:c.classList.contains("n")?"right":"left",fontStyle:"bold"}}))),showFoot:"lastPage",styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[31,95,139]},footStyles:{fillColor:[232,237,242],textColor:20},columnStyles:cs,margin:{left:40,right:40}});y=doc.lastAutoTable.finalY+10}});fl()});
+const fn=(tabs[tab]+"-"+today()).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w-]+/g,"_")+".pdf";
+try{const d=await claude.use("downloads");if(d){await d.save({filename:fn,data:doc.output("blob")});return}}catch(e){}doc.save(fn)}
+function tiers(cli){const p=P(),pre=cli?"41":"40",dl=+p.dl||30,ref=today(),DAY=864e5,iso=s=>Date.parse(s+"T00:00:00Z"),add=(s,n)=>new Date(iso(s)+n*DAY).toISOString().slice(0,10),by={},B=[0,0,0,0,0],rows=[],det=[];
+J("",p.df).filter(l=>l.c.startsWith(pre)).forEach(l=>(by[l.tr||"Sans tiers"]=by[l.tr||"Sans tiers"]||[]).push(l));
+Object.keys(by).sort().forEach(n=>{const inv=[];let pay=0;by[n].forEach(l=>{const a=cli?l.db-l.cr:l.cr-l.db;a>0?inv.push({p:l.p,d:l.d,ec:l.ec||add(l.d,dl),a}):pay-=a});inv.sort((x,y)=>x.ec<y.ec?-1:x.ec>y.ec?1:0);const b=[0,0,0,0,0];
+inv.forEach(i=>{const t=Math.min(i.a,pay);pay-=t;i.r=Math.round((i.a-t)*100)/100;if(i.r>0){i.j=Math.floor((iso(ref)-iso(i.ec))/DAY);const k=i.j<=0?0:i.j<=30?1:i.j<=60?2:i.j<=90?3:4;b[k]+=i.r;det.push([n,i])}});
+const tot=b.reduce((x,y)=>x+y,0),av=Math.round(pay*100)/100,late=tot-b[0]>0.005;b.forEach((v,k)=>B[k]+=v);
+if(tot>0.005||av>0.005)rows.push(`<tr><td>${esc(n)}</td><td class="n">${f2(tot)}</td>${b.map(v=>`<td class="n">${v?f2(v):""}</td>`).join("")}<td class="${late?"bad":"ok"}">${tot<=0.005?"Avance de "+f2(av):late?"En retard":"À jour"}</td></tr>`)});
+const T=B.reduce((x,y)=>x+y,0),nm=cli?"client":"fournisseur";
+if(!rows.length)return `<div class="card"><p class="em">Aucun solde ${nm} ouvert. Saisissez une écriture sur un compte ${pre} avec le nom du ${nm} dans l’onglet Saisie.</p></div>`;
+det.sort((x,y)=>x[0]<y[0]?-1:x[0]>y[0]?1:x[1].ec<y[1].ec?-1:1);
+return `<div class="card t"><p class="msg">Situation au ${fd(ref)}. Les règlements sont imputés sur les échéances les plus anciennes. Délai par défaut sans échéance saisie : ${dl} jours.</p><table><thead><tr><th>${cli?"Client":"Fournisseur"}</th><th class="n">Total dû</th><th class="n">À jour</th><th class="n">1 à 30 j</th><th class="n">31 à 60 j</th><th class="n">61 à 90 j</th><th class="n">Plus de 90 j</th><th>Situation</th></tr></thead><tbody>${rows.join("")}</tbody><tfoot><tr><td>Total</td><td class="n">${f2(T)}</td>${B.map(v=>`<td class="n">${f2(v)}</td>`).join("")}<td></td></tr></tfoot></table></div>
+<div class="card t"><b>Échéances ouvertes</b><table><thead><tr><th>${cli?"Client":"Fournisseur"}</th><th>Pièce</th><th>Date</th><th>Échéance</th><th class="n">Reste dû</th><th>Statut</th></tr></thead><tbody>${det.map(([n,i])=>`<tr><td>${esc(n)}</td><td>${esc(i.p)}</td><td>${fd(i.d)}</td><td>${fd(i.ec)}</td><td class="n">${f2(i.r)}</td><td class="${i.j>0?"bad":"ok"}">${i.j>0?"En retard de "+i.j+" j":i.j==0?"Échéance aujourd’hui":"À jour, dans "+(-i.j)+" j"}</td></tr>`).join("")}</tbody></table></div>`}
+function bind2(){const g=s=>$(s);const fp=g("#fp");if(fp)fp.oninput=e=>{P()[e.target.name]=e.target.value;S.co=P().nm;save()};
+const st=g("#fst");if(st)st.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(st)),q=Number(String(d.q).replace(/\s/g,"").replace(",",".")),u=Number(String(d.u).replace(/\s/g,"").replace(",",".")),pc=String(d.pc||"").trim(),pt=String(d.pt||ti(pc)||"").trim(),piece=String(d.p||"").trim(),c=String(d.c||"").trim();const err=t=>{sm="!"+t;draw()};if(!d.nm.trim()||!/^3[0-9]{2,}$/.test(c))return err("Saisissez un article et un compte de stock commençant par 3.");if(!Number.isFinite(q)||q<=0||!Number.isFinite(u)||u<=0)return err("La quantité et le coût unitaire doivent être positifs.");if(!d.d||!piece||S.j.some(l=>l.p===piece))return err("La date et un numéro de pièce unique sont obligatoires.");if(!/^\d{2,}$/.test(pc)||!pt)return err("Saisissez un compte de contrepartie et son intitulé.");const montant=Math.round(q*u*100)/100,id="ST-"+Date.now();const art={id,nm:d.nm.trim(),c,q,u};S.st.push(art);if(!REF[c.slice(0,3)]&&!REF[c.slice(0,2)]&&!S.c[c])S.c[c]=ti(c)||art.nm;if(!REF[pc.slice(0,3)]&&!REF[pc.slice(0,2)]&&!S.c[pc])S.c[pc]=pt;S.j.push({d:d.d,p:piece,c,t:ti(c)||art.nm,l:"Stock initial — "+art.nm,db:montant,cr:0,stockId:id},{d:d.d,p:piece,c:pc,t:pt,l:"Contrepartie du stock initial — "+art.nm,db:0,cr:montant,stockId:id});save();sm="Article créé. Stock initial et écriture "+piece+" enregistrés au journal.";draw()};
+const mv=g("#fmv");if(mv){const typ=mv.elements.t,wrap1=g("#stock-pc-wrap"),wrap2=g("#stock-pt-wrap"),toggle=()=>{const sortie=typ.value==="s";if(wrap1)wrap1.style.display=sortie?"none":"";if(wrap2)wrap2.style.display=sortie?"none":""};typ.onchange=toggle;toggle();const pc=mv.elements.pc,pt=mv.elements.pt;if(pc&&pt){const fill=()=>{const n=ti(pc.value);if(n)pt.value=n};pc.addEventListener("input",fill);pc.addEventListener("change",fill)}mv.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(mv)),x=S.st[+d.i],q=Number(String(d.q||"").replace(/\s/g,"").replace(",",".")),piece=String(d.p||"").trim(),pc=String(d.pc||"").trim(),pt=String(d.pt||ti(pc)||"").trim();const err=t=>{sm="!"+t;draw()};if(!x)return err("Sélectionnez un article valide.");if(!Number.isFinite(q)||q<=0)return err("La quantité doit être positive.");if(!d.d||!piece||S.j.some(l=>l.p===piece))return err("La date et un numéro de pièce unique sont obligatoires.");let montant=0,db1=0,cr1=0,db2=0,cr2=0,c1="",t1="",c2="",t2="";if(d.t==="s"){if(q>x.q)return err("Sortie supérieure au stock disponible ("+x.q+").");montant=Math.round(q*x.u*100)/100;if(montant<=0)return err("La valeur de sortie doit être positive.");x.q=Math.round((x.q-q)*1e6)/1e6;c1="603000";t1=ti(c1)||"Variations des stocks de biens achetés";db1=montant;c2=x.c;t2=ti(x.c)||x.nm;cr2=montant}else{const u=Number(String(d.u||"").replace(/\s/g,"").replace(",","."));if(!Number.isFinite(u)||u<=0)return err("Pour une entrée, saisissez un coût unitaire positif.");if(!/^\d{2,}$/.test(pc)||!pt)return err("Saisissez le compte de contrepartie et son intitulé.");montant=Math.round(q*u*100)/100;const ancien=x.q*x.u;x.u=(ancien+montant)/(x.q+q);x.q=Math.round((x.q+q)*1e6)/1e6;c1=x.c;t1=ti(x.c)||x.nm;db1=montant;c2=pc;t2=pt;cr2=montant;if(!REF[pc.slice(0,3)]&&!REF[pc.slice(0,2)]&&!S.c[pc])S.c[pc]=pt}S.j.push({d:d.d,p:piece,c:c1,t:t1,l:(d.t==="s"?"Sortie de stock — ":"Entrée de stock — ")+x.nm,db:db1,cr:0,stockId:x.id},{d:d.d,p:piece,c:c2,t:t2,l:(d.t==="s"?"Sortie de stock — ":"Entrée de stock — ")+x.nm,db:0,cr:montant,stockId:x.id});if(d.t==="s"){S.j[S.j.length-2].db=montant;S.j[S.j.length-1].cr=montant}save();sm="Mouvement enregistré. Écriture "+piece+" ajoutée au journal pour "+f2(montant)+".";draw()}};
+document.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>{S.st.splice(+b.dataset.ds,1);save();draw()});
+const co=g("#co");if(co)co.oninput=()=>{S.co=co.value;save()};
+const dl=g("#dl");if(dl)dl.onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="compta-sauvegarde-"+today()+".json";a.click()};
+const load=t=>{try{const o=JSON.parse(t);if(!Array.isArray(o.j))throw 0;S=Object.assign({j:[],im:[],c:{},st:[],co:""},o);save();dm="Données restaurées : "+S.j.length+" écritures."}catch(e){dm="!Texte ou fichier de sauvegarde invalide."}draw()};
+const fl=g("#fl");if(fl)fl.onchange=()=>{const f=fl.files[0];if(f)f.text().then(load)};
+const rs=g("#rs");if(rs)rs.onclick=()=>load(g("#ta").value);
+const rz=g("#rz");if(rz)rz.onclick=()=>{if(rz.dataset.ok){S={j:[],im:[],c:{},st:[],co:""};save();dm="Toutes les données sont effacées.";draw()}else{rz.dataset.ok=1;rz.textContent="Confirmer l’effacement"}}}
+function draw(){[...$("#nav").children].forEach((b,i)=>b.classList.toggle("on",i==tab));$("#v").innerHTML=[saisie,journal,bal,tva,immo,stocks,()=>tiers(1),()=>tiers(0),bilan,resultat,flux,params,donnees][tab]();$("#ph").innerHTML="<b>"+esc(P().nm||"Société")+"</b>, "+tabs[tab]+", imprimé le "+new Date().toLocaleDateString("fr-FR");bind()}
+function bind(){bind2();["#dt","#ec"].forEach(s=>{const e=$(s);if(e)e.oninput=()=>{const v=e.value.replace(/\D/g,"").slice(0,8);e.value=v.length>4?v.slice(0,2)+"/"+v.slice(2,4)+"/"+v.slice(4):v.length>2?v.slice(0,2)+"/"+v.slice(2):v}});const fs=$("#fs");if(fs){const cc=$("#cc"),tt=$("#tt");if(cc&&tt){const completeTitle=()=>{const name=ti(cc.value);if(name)tt.value=name};cc.addEventListener("input",completeTitle);cc.addEventListener("change",completeTitle)};
+fs.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(fs)),rawDb=String(d.db||"").trim().replace(/\\s/g,"").replace(",", "."),rawCr=String(d.cr||"").trim().replace(/\\s/g,"").replace(",", "."),db=rawDb===""?0:Number(rawDb),cr=rawCr===""?0:Number(rawCr);
+const er=(t,f)=>{const m=$("#fm");m.className="msg bad";m.textContent=t;fs.querySelectorAll(".inv").forEach(x=>x.classList.remove("inv"));const x=fs.elements[f];if(x){x.classList.add("inv");x.focus()}m.scrollIntoView({block:"center"})};
+if(!td(d.d))return er("Date invalide : utilisez le format jj/mm/aaaa, par exemple 25/11/2026.","d");
+if(!d.p.trim())return er("Le numéro de pièce est obligatoire.","p");
+if(!d.c.trim())return er("Le numéro de compte est obligatoire.","c");
+if(!d.t.trim())return er("Compte inconnu dans la liste : saisissez son intitulé dans la case Intitulé.","t");
+if(!Number.isFinite(db)||!Number.isFinite(cr)||db<0||cr<0)return er("Les montants doivent être des nombres positifs ou nuls.","db");
+if((db>0)===(cr>0))return er("Saisissez un montant positif au débit ou au crédit, mais pas les deux ni aucun.",db>0?"cr":"db");
+d.d=td(d.d);d.p=String(d.p||"").trim();d.c=String(d.c||"").trim();d.t=String(d.t||"").trim();const tc=/^4[01]/.test(d.c);if(tc&&!(d.tr||"").trim())return er("Indiquez le client ou le fournisseur pour ce compte (40 ou 41).","tr");let ec="";if(tc&&(d.ec||"").trim()){ec=td(d.ec);if(!ec)return er("Échéance invalide : utilisez jj/mm/aaaa.","ec");}if(!REF[d.c.slice(0,3)]&&!REF[d.c.slice(0,2)]&&!S.c[d.c])S.c[d.c]=d.t;
+S.j.push({d:d.d,p:d.p.trim(),c:d.c,t:d.t,l:d.l,db,cr,...(tc?{tr:d.tr.trim(),ec}:{})});sessionStorage.p=d.p;save();const e2=Math.round(pieces()[d.p]*100)/100;
+msg=e2?"Ligne ajoutée. La pièce "+d.p+" est en écart de "+f2(e2)+".":"Ligne ajoutée. La pièce "+d.p+" est équilibrée.";draw();$("#cc")?.focus()}}
+document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{S.j.splice(+b.dataset.del,1);save();draw()});
+document.querySelectorAll("[data-di]").forEach(b=>b.onclick=()=>{if(!confirm("Supprimer cette immobilisation du registre ? Les écritures déjà passées au journal seront conservées."))return;S.im.splice(+b.dataset.di,1);fiche=-1;save();draw()});
+const fi=$("#fi");if(fi){const pc=fi.elements.pc,pt=fi.elements.pt;if(pc&&pt){const fill=()=>{const n=ti(pc.value);if(n)pt.value=n};pc.addEventListener("input",fill);pc.addEventListener("change",fill)}fi.onsubmit=e=>{e.preventDefault();const d=Object.fromEntries(new FormData(fi)),v=Number(String(d.v).trim().replace(/\s/g,"").replace(",",".")),vr=Number(String(d.vr||"0").trim().replace(/\s/g,"").replace(",",".")),n=Number(d.n),pcod=String(d.pc||"").trim(),pce=String(d.pt||ti(pcod)||"").trim(),piece=String(d.p||"").trim();
+const err=t=>{im="!"+t;draw()};if(!d.nm.trim())return err("La désignation est obligatoire.");if(!d.d||!d.ms||d.ms<d.d)return err("La mise en service doit être renseignée et ne peut pas précéder l’acquisition.");if(!/^2[0-9]{2,}$/.test(d.c.trim()))return err("Le compte d’immobilisation doit commencer par 2.");if(!Number.isFinite(v)||v<=0||!Number.isFinite(vr)||vr<0||vr>v)return err("Vérifiez la valeur d’acquisition et la valeur résiduelle.");if(!Number.isInteger(n)||n<1)return err("La durée doit être un nombre entier d’années supérieur à zéro.");if(!/^\d{2,}$/.test(pcod)||!pce)return err("Saisissez un compte de contrepartie et son intitulé.");if(!piece||S.j.some(l=>l.p===piece))return err("Le numéro de pièce est obligatoire et doit être unique.");
+const id="IM-"+Date.now()+"-"+(S.im.length+1),asset={id,nm:d.nm.trim(),d:d.d,ms:d.ms,c:d.c.trim(),v,vr,n,pc:pcod,pt:pce,p:piece};S.im.push(asset);if(!REF[asset.c.slice(0,3)]&&!REF[asset.c.slice(0,2)]&&!S.c[asset.c])S.c[asset.c]=ti(asset.c)||asset.nm;if(!REF[pcod.slice(0,3)]&&!REF[pcod.slice(0,2)]&&!S.c[pcod])S.c[pcod]=pce;
+const date=asset.d,lib=String(d.lib||("Acquisition "+asset.nm)).trim();S.j.push({d:date,p:piece,c:asset.c,t:ti(asset.c)||asset.nm,l:lib+" — "+asset.nm,db:v,cr:0,imId:id},{d:date,p:piece,c:pcod,t:pce,l:lib+" — "+asset.nm,db:0,cr:v,imId:id});fiche=S.im.length-1;save();im="Immobilisation enregistrée. L’écriture d’acquisition "+piece+" a été ajoutée au journal.";draw()}}
+document.querySelectorAll("[data-fiche]").forEach(b=>b.onclick=()=>{fiche=+b.dataset.fiche;draw();$("#fiche-immo")?.scrollIntoView({behavior:"smooth",block:"start"})});const pf=$("#print-fiche");if(pf)pf.onclick=()=>window.print();const cf=$("#close-fiche");if(cf)cf.onclick=()=>{fiche=-1;draw()};
+const dot=$("#dot");if(dot)dot.onclick=()=>{const an=new Date().getFullYear(),p="DOT-"+an;if(S.j.some(l=>l.p==p)){im="La dotation "+an+" est déjà passée.";return draw()}
+S.im.forEach(x=>{const ligne=planImmo(x).find(z=>z.an===an);if(!ligne||ligne.dot<=0)return;const ca="28"+x.c.slice(1,3)+"00";S.c["681300"]=S.c["681300"]||"Dotations aux amortissements d’exploitation";const lib="Dotation annuelle — "+x.nm;
+S.j.push({d:an+"-12-31",p,c:"681300",t:ti("681300"),l:lib,db:ligne.dot,cr:0,imId:x.id},{d:an+"-12-31",p,c:ca,t:ti(ca)||"Amortissements",l:lib,db:0,cr:ligne.dot,imId:x.id})});
+save();im="Dotations de l’exercice passées au journal, pièce "+p+".";draw()}}
+
+function exportToCsv() {
+  if (!S.j || S.j.length === 0) {
+    alert("Aucune écriture comptable dans le journal à exporter.");
+    return;
+  }
+  let csvContent = "\uFEFF"; // UTF-8 BOM for Excel
+  csvContent += "Date;Numéro de Pièce;Compte;Intitulé;Tiers (Client/Fournisseur);Échéance;Libellé;Débit;Crédit\n";
+
+  S.j.forEach(l => {
+    const row = [
+      fd(l.d) || "",
+      `"${(l.p || "").replace(/"/g, '""')}"`,
+      `"${(l.c || "").replace(/"/g, '""')}"`,
+      `"${(l.t || "").replace(/"/g, '""')}"`,
+      `"${(l.tr || "").replace(/"/g, '""')}"`,
+      fd(l.ec) || "",
+      `"${(l.l || "").replace(/"/g, '""')}"`,
+      l.db ? String(l.db).replace(".", ",") : "0,00",
+      l.cr ? String(l.cr).replace(".", ",") : "0,00"
+    ];
+    csvContent += row.join(";") + "\n";
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Journal_Comptable_SYSCOHADA_${today()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+$("#pdf").onclick=pdf;
+const xlBtn=$("#xlsx-export"); if(xlBtn) xlBtn.onclick=exportToCsv;draw();upd();
+// Pont explicite entre le script principal et le module Firebase (les modules ont leur propre portée).
+window.ComptaBridge = {
+  getState: () => S,
+  setState: value => { S = Object.assign({j:[],im:[],c:{},st:[],co:""}, value || {}); try { localStorage.setItem("compta", JSON.stringify(S)); } catch(e) {} draw(); },
+  save,
+  setDbDoc: value => { dbDoc = value; },
+  setStatus: value => { sync = value; upd(); },
+  refresh: draw
+};
+
+</script>
+<script>
+(function() {
+  let ghSha = "";
+  let isSyncing = false;
+  let autoSyncInterval = null;
+
+  function getGhCreds() {
+    return {
+      owner: localStorage.getItem("gh_owner") || "",
+      repo: localStorage.getItem("gh_repo") || "",
+      path: localStorage.getItem("gh_path") || "compta_db.json",
+      token: localStorage.getItem("gh_token") || ""
+    };
+  }
+
+  function saveGhCreds(owner, repo, path, token) {
+    localStorage.setItem("gh_owner", owner);
+    localStorage.setItem("gh_repo", repo);
+    localStorage.setItem("gh_path", path);
+    localStorage.setItem("gh_token", token);
+  }
+
+  function isConnected() {
+    const c = getGhCreds();
+    return Boolean(c.owner && c.repo && c.path && c.token);
+  }
+
+  function updateUiStatus() {
+    const statusEl = document.getElementById("gh-user-status");
+    const syncBtn = document.getElementById("gh-sync-now");
+    const discoBtn = document.getElementById("gh-disconnect");
+    const creds = getGhCreds();
+
+    if (isConnected()) {
+      if (statusEl) statusEl.textContent = `Connecté : ${creds.owner}/${creds.repo} (${creds.path})`;
+      if (statusEl) statusEl.style.color = "var(--ok)";
+      if (syncBtn) syncBtn.style.display = "";
+      if (discoBtn) discoBtn.style.display = "";
+    } else {
+      if (statusEl) statusEl.textContent = "Non connecté à GitHub (Stockage local uniquement)";
+      if (statusEl) statusEl.style.color = "var(--mut)";
+      if (syncBtn) syncBtn.style.display = "none";
+      if (discoBtn) discoBtn.style.display = "none";
+    }
+  }
+
+  async function fetchFromGitHub(silent = false) {
+    if (!isConnected() || isSyncing) return;
+    const creds = getGhCreds();
+    if (!silent) window.ComptaBridge.setStatus("Connexion et lecture du dépôt GitHub...");
+    isSyncing = true;
+
+    try {
+      const url = `https://api.github.com/repos/${creds.owner}/${creds.repo}/contents/${creds.path}`;
+      const res = await fetch(url, {
+        headers: {
+          "Authorization": `token ${creds.token}`,
+          "Accept": "application/vnd.github.v3+json"
+        }
+      });
+
+      if (res.status === 404) {
+        window.ComptaBridge.setStatus("Fichier non trouvé sur GitHub. Création initiale en cours...");
+        ghSha = "";
+        isSyncing = false;
+        await pushToGitHub(true);
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(`Erreur GitHub HTTP ${res.status}: ${res.statusText}`);
+      }
+
+      const fileInfo = await res.json();
+      ghSha = fileInfo.sha;
+
+      const rawContent = decodeURIComponent(escape(atob(fileInfo.content)));
+      const remoteData = JSON.parse(rawContent);
+      const localData = window.ComptaBridge.getState();
+
+      const remoteTs = Number(remoteData.ts || 0);
+      const localTs = Number(localData.ts || 0);
+
+      if (remoteTs > localTs) {
+        window.ComptaBridge.setState(remoteData);
+        window.ComptaBridge.setStatus("Données synchronisées depuis GitHub avec succès !");
+      } else if (localTs > remoteTs) {
+        window.ComptaBridge.setStatus("Données locales plus récentes. Envoi de la mise à jour à GitHub...");
+        isSyncing = false;
+        await pushToGitHub(true);
+        return;
+      } else {
+        window.ComptaBridge.setStatus("Données synchronisées avec GitHub.");
+      }
+    } catch (err) {
+      window.ComptaBridge.setStatus("Échec de la synchronisation GitHub : " + err.message);
+      console.error("GitHub Fetch Error:", err);
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  async function pushToGitHub(force = false) {
+    if (!isConnected()) return;
+    if (isSyncing && !force) return;
+    const creds = getGhCreds();
+    window.ComptaBridge.setStatus("Sauvegarde sur votre dépôt GitHub en cours...");
+    isSyncing = true;
+
+    try {
+      const localData = window.ComptaBridge.getState();
+      localData.ts = Date.now();
+      const jsonStr = JSON.stringify(localData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+      const url = `https://api.github.com/repos/${creds.owner}/${creds.repo}/contents/${creds.path}`;
+      const payload = {
+        message: `Mise à jour Compta SYSCOHADA (${new Date().toLocaleString("fr-FR")})`,
+        content: base64Content
+      };
+      if (ghSha) payload.sha = ghSha;
+
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${creds.token}`,
+          "Content-Type": "application/json",
+          "Accept": "application/vnd.github.v3+json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || `Erreur HTTP ${res.status}`);
+      }
+
+      const resData = await res.json();
+      ghSha = resData.content.sha;
+      window.ComptaBridge.setStatus("Sauvegardé avec succès dans votre dépôt GitHub !");
+    } catch (err) {
+      window.ComptaBridge.setStatus("Échec de la sauvegarde sur GitHub : " + err.message);
+      console.error("GitHub Push Error:", err);
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const configToggle = document.getElementById("gh-config-toggle");
+    const configForm = document.getElementById("gh-config-form");
+    const saveBtn = document.getElementById("gh-save-config");
+    const cancelBtn = document.getElementById("gh-cancel-config");
+    const syncBtn = document.getElementById("gh-sync-now");
+    const discoBtn = document.getElementById("gh-disconnect");
+
+    const ownerInput = document.getElementById("gh-owner");
+    const repoInput = document.getElementById("gh-repo");
+    const pathInput = document.getElementById("gh-path");
+    const tokenInput = document.getElementById("gh-token");
+
+    const creds = getGhCreds();
+    if (ownerInput) ownerInput.value = creds.owner;
+    if (repoInput) repoInput.value = creds.repo;
+    if (pathInput) pathInput.value = creds.path;
+    if (tokenInput) tokenInput.value = creds.token;
+
+    updateUiStatus();
+
+    if (configToggle) {
+      configToggle.onclick = () => {
+        configForm.style.display = configForm.style.display === "none" ? "block" : "none";
+      };
+    }
+
+    if (cancelBtn) {
+      cancelBtn.onclick = () => {
+        configForm.style.display = "none";
+      };
+    }
+
+    if (saveBtn) {
+      saveBtn.onclick = async () => {
+        const o = ownerInput.value.trim();
+        const r = repoInput.value.trim();
+        const p = pathInput.value.trim() || "compta_db.json";
+        const t = tokenInput.value.trim();
+
+        if (!o || !r || !t) {
+          alert("Veuillez remplir l'utilisateur, le dépôt et le jeton (PAT).");
+          return;
+        }
+
+        saveGhCreds(o, r, p, t);
+        updateUiStatus();
+        configForm.style.display = "none";
+        await fetchFromGitHub();
+      };
+    }
+
+    if (syncBtn) {
+      syncBtn.onclick = () => fetchFromGitHub();
+    }
+
+    if (discoBtn) {
+      discoBtn.onclick = () => {
+        if (confirm("Voulez-vous déconnecter le dépôt GitHub ? Les données restent enregistrées localement.")) {
+          saveGhCreds("", "", "compta_db.json", "");
+          ghSha = "";
+          updateUiStatus();
+          window.ComptaBridge.setStatus("Déconnecté de GitHub. Données conservées localement.");
+        }
+      };
+    }
+
+    if (isConnected()) {
+      fetchFromGitHub(true);
+      autoSyncInterval = setInterval(() => fetchFromGitHub(true), 120000);
+    }
+  });
+
+  window.GitHubBridge = {
+    isConnected,
+    fetchFromGitHub,
+    pushToGitHub
+  };
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(err => console.warn("SW:", err));
+  });
+}
+</script>
+
+</body></html>

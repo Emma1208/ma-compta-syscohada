@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f5f8b">
+<link rel="manifest" href="./manifest.json">
+<title>Compta SYSCOHADA</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#14213d;--mut:#5b6678;--line:#d5dbe3;--acc:#1f5f8b;--ok:#1d7a4d;--bad:#b3261e;--hd:#e8edf2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1620;--card:#18222e;--ink:#e6ebf2;--mut:#9aa7b8;--line:#2c3a4a;--acc:#6fb1e0;--ok:#5bc98f;--bad:#ff8a80;--hd:#223142;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1620;--card:#18222e;--ink:#e6ebf2;--mut:#9aa7b8;--line:#2c3a4a;--acc:#6fb1e0;--ok:#5bc98f;--bad:#ff8a80;--hd:#223142;color-scheme:dark}
+*{box-sizing:inherit}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 "Segoe UI",system-ui,sans-serif;padding:0 12px 40px;max-width:980px;margin:auto}
+h1{font:600 20px/1.2 Georgia,serif;margin:16px 0 4px}p.s{margin:0 0 12px;color:var(--mut);font-size:13px}
+nav{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--line);margin-bottom:14px}
+nav button{background:none;border:0;padding:10px 12px;font:inherit;color:var(--mut);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav button.on{color:var(--acc);border-color:var(--acc);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mut);gap:3px}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%}
+input:focus,button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.w2{grid-column:span 2}.f{grid-column:1/-1}
+button.p{background:var(--acc);color:#fff;border:0;border-radius:6px;padding:10px 16px;font:600 15px "Segoe UI",system-ui,sans-serif;cursor:pointer}
+button.g{background:none;border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:6px 10px;font:inherit;cursor:pointer}
+.msg{font-size:13px;min-height:20px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.t{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}
+th{background:var(--hd);text-align:left;padding:7px;white-space:nowrap}td{padding:6px 7px;border-top:1px solid var(--line)}
+.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}tfoot td{font-weight:700;border-top:2px solid var(--ink)}
+.k{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.k:first-child{border:0}
+.em{color:var(--mut);padding:18px 0;text-align:center}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.two .card{margin:0}.tb{margin-bottom:10px}#ph{display:none}.inv{border-color:var(--bad)!important;outline:2px solid var(--bad)}
+@media print{body *{visibility:hidden!important}#fiche-immo,#fiche-immo *{visibility:visible!important}#fiche-immo{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}#fiche-immo button{display:none!important}:root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mut:#333;--line:#999;--hd:#eee;--ok:#000;--bad:#000}nav,.np,form,button,textarea{display:none!important}body{max-width:none;padding:0}.card{border:0;padding:0}#ph{display:block;font-size:14px;margin-bottom:10px;border-bottom:2px solid #000;padding-bottom:6px}}
+</style></head><body>
+<h1>Comptabilité SYSCOHADA</h1>
+<p class="s">Connectez-vous avec votre Personal Access Token (PAT) GitHub pour synchroniser vos données sur votre dépôt.</p>
+<div class="card np tb" id="github-zone" style="margin-bottom:14px; background:var(--card); padding:12px; border:1px solid var(--line); border-radius:8px;">
+  <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+    <button class="g" id="gh-config-toggle" style="font-weight:600;">⚙️ Configurer GitHub BDD</button>
+    <button class="g" id="gh-sync-now" style="display:none;">🔄 Synchroniser</button>
+    <button class="g" id="gh-disconnect" style="display:none; color:var(--bad);">Déconnecter GitHub</button>
+    <span id="gh-user-status" style="font-size:12px; color:var(--mut);">Non connecté à GitHub (Stockage local uniquement)</span>
+  </div>
+  <div id="gh-config-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:10px;">
+      <label>Utilisateur / Org GitHub<input type="text" id="gh-owner" placeholder="ex: votre-pseudo"></label>
+      <label>Nom du Dépôt (Repo)<input type="text" id="gh-repo" placeholder="ex: mon-depot-compta"></label>
+      <label>Chemin du fichier<input type="text" id="gh-path" value="compta_db.json"></label>
+      <label>Personal Access Token (PAT)<input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx"></label>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="p" id="gh-save-config" style="width:auto; padding:6px 16px;">Enregistrer & Connexion</button>
+      <button class="g" id="gh-cancel-config" style="width:auto;">Fermer</button>
+    </div>
+  </div>
+</div>
+<nav id="nav"></nav><div class="np tb"><button class="g" id="pdf">Exporter en PDF</button> <button class="g" id="xlsx-export" style="margin-left:4px; font-weight:600; color:var(--ok); border-color:var(--ok);">📊 Exporter en Excel (.xlsx / CSV)</button> <span id="sy" style="font-size:12px;color:var(--mut);margin-left:8px"></span></div><div id="ph"></div><main id="v"></main>
+<script>
+const REF=`10 Capital
+101 Capital social
+104 Compte de l’exploitant
+105 Primes liées au capital
+11 Réserves
+12 Report à nouveau
+13 Résultat de l’exercice
+16 Emprunts et dettes assimilées
+162 Emprunts auprès des établissements de crédit
+21 Immobilisations incorporelles
+22 Terrains
+23 Bâtiments et installations
+24 Matériel, mobilier et actifs biologiques
+241 Matériel et outillage industriel
+244 Matériel et mobilier
+245 Matériel de transport
+26 Titres de participation
+27 Autres immobilisations financières
+28 Amortissements
+281 Amortissements des immobilisations incorporelles
+283 Amortissements des bâtiments
+284 Amortissements du matériel
+31 Marchandises
+32 Matières premières et fournitures liées
+33 Autres approvisionnements
+36 Produits finis
+39 Dépréciations des stocks
+40 Fournisseurs et comptes rattachés
+401 Fournisseurs, dettes en compte
+409 Fournisseurs débiteurs
+41 Clients et comptes rattachés
+411 Clients
+419 Clients créditeurs
+42 Personnel
+421 Personnel, avances et acomptes
+422 Personnel, rémunérations dues
+43 Organismes sociaux
+431 Sécurité sociale
+44 État et collectivités publiques
+441 État, impôt sur les bénéfices
+442 État, autres impôts et taxes
+443 État, TVA facturée
+444 État, TVA due ou crédit de TVA
+445 État, TVA récupérable
+447 État, impôts retenus à la source
+46 Associés et groupe
+462 Associés, comptes courants
+47 Débiteurs et créditeurs divers
+476 Charges constatées d’avance
+477 Produits constatés d’avance
+51 Valeurs à encaisser
+52 Banques
+521 Banques locales
+56 Banques, crédits de trésorerie
+57 Caisse
+571 Caisse siège social
+58 Virements internes
+60 Achats et variations de stocks
+601 Achats de marchandises
+602 Achats de matières premières
+604 Achats stockés de matières consommables
+605 Autres achats
+61 Transports
+62 Services extérieurs A
+622 Locations et charges locatives
+624 Entretien, réparations et maintenance
+625 Primes d’assurance
+628 Frais de télécommunications
+63 Services extérieurs B
+631 Frais bancaires
+632 Rémunérations d’intermédiaires et de conseils
+633 Frais de formation du personnel
+64 Impôts et taxes
+65 Autres charges
+66 Charges de personnel
+661 Rémunérations directes, personnel national
+664 Charges sociales
+67 Frais financiers et charges assimilées
+671 Intérêts des emprunts
+68 Dotations aux amortissements
+681 Dotations aux amortissements d’exploitation
+69 Dotations aux provisions et dépréciations
+70 Ventes
+701 Ventes de marchandises
+702 Ventes de produits finis
+705 Travaux facturés
+706 Services vendus
+707 Produits accessoires
+71 Subventions d’exploitation
+75 Autres produits
+77 Revenus financiers et assimilés
+78 Transferts de charges
+79 Reprises de provisions
+81 Valeurs comptables des cessions d’immobilisations
+82 Produits des cessions d’immobilisations
+83 Charges hors activités ordinaires
+84 Produits hors activités ordinaires
+89 Impôts sur le résultat
+891 Impôts sur les bénéfices de l’exercice`.split("\n").reduce((o,l)=>{const i=l.indexOf(" ");o[l.slice(0,i)]=l.slice(i+1);return o},{});
+Object.assign(REF,`102 Capital par dotation et complément de dotation
+103 Capital personnel
+106 Écarts de réévaluation
+109 Actionnaires, capital souscrit non appelé
+111 Réserve légale
+112 Réserves statutaires ou contractuelles
+113 Réserves réglementées
+118 Autres réserves
+121 Report à nouveau créditeur
+129 Report à nouveau débiteur
+130 Résultat en instance d’affectation
+131 Résultat net de l’exercice : bénéfice
+139 Résultat net de l’exercice : perte
+14 Subventions d’investissement
+141 Subventions d’équipement
+15 Provisions réglementées et fonds assimilés
+151 Amortissements dérogatoires
+161 Emprunts obligataires
+163 Avances reçues de l’État
+164 Avances reçues et comptes courants bloqués
+165 Dépôts et cautionnements reçus
+166 Intérêts courus
+168 Autres emprunts et dettes
+17 Dettes de location-acquisition
+172 Dettes de crédit-bail immobilier
+173 Dettes de crédit-bail mobilier
+18 Dettes liées à des participations et comptes de liaison
+181 Dettes liées à des participations
+19 Provisions pour risques et charges
+191 Provisions pour litiges
+195 Provisions pour impôts
+196 Provisions pour pensions et obligations similaires
+198 Autres provisions pour risques et charges
+20 Charges immobilisées
+211 Frais de développement
+212 Brevets, licences, concessions et droits similaires
+213 Logiciels et sites internet
+214 Marques
+215 Fonds commercial
+216 Droit au bail
+218 Autres droits et valeurs incorporels
+221 Terrains agricoles et forestiers
+222 Terrains nus
+223 Terrains bâtis
+224 Travaux de mise en valeur des terrains
+231 Bâtiments industriels, agricoles, administratifs et commerciaux sur sol propre
+232 Bâtiments industriels, agricoles, administratifs et commerciaux sur sol d’autrui
+233 Ouvrages d’infrastructure
+234 Aménagements, agencements et installations techniques
+235 Aménagements de bureaux
+242 Matériel et outillage agricole
+243 Matériel d’emballage récupérable et identifiable
+246 Actifs biologiques
+247 Agencements, aménagements du matériel et biens divers
+248 Autres matériels et mobiliers
+25 Avances et acomptes versés sur immobilisations
+261 Titres de participation
+271 Prêts et créances non commerciales
+274 Prêts au personnel
+275 Dépôts et cautionnements versés
+282 Amortissements des terrains
+29 Dépréciations des immobilisations
+311 Marchandises A
+312 Marchandises B
+321 Matières A
+322 Matières B
+331 Matières consommables
+332 Fournitures d’atelier et d’usine
+333 Fournitures de magasin
+334 Fournitures de bureau
+335 Emballages
+34 Produits en cours
+35 Services en cours
+37 Produits intermédiaires et résiduels
+38 Stocks en cours de route, en consignation ou en dépôt
+402 Fournisseurs, effets à payer
+408 Fournisseurs, factures non parvenues
+412 Clients, effets à recevoir
+416 Créances clients litigieuses ou douteuses
+418 Clients, produits non encore facturés
+423 Personnel, oppositions, saisies-arrêts
+424 Personnel, œuvres sociales
+425 Représentants du personnel
+427 Personnel, dépôts
+428 Personnel, charges à payer et produits à recevoir
+432 Caisses de retraite complémentaire
+433 Autres organismes sociaux
+438 Organismes sociaux, charges à payer et produits à recevoir
+446 État, autres taxes sur le chiffre d’affaires
+448 État, charges à payer et produits à recevoir
+449 État, créances et dettes diverses
+45 Organismes internationaux
+461 Associés, opérations sur le capital
+465 Associés, dividendes à payer
+466 Groupe, comptes courants
+471 Débiteurs et créditeurs divers
+472 Créances et dettes sur cessions d’immobilisations
+478 Écarts de conversion actif
+479 Écarts de conversion passif
+48 Créances et dettes hors activités ordinaires
+481 Fournisseurs d’investissements
+482 Fournisseurs d’investissements, effets à payer
+49 Dépréciations et provisions pour risques à court terme
+50 Titres de placement
+511 Effets à encaisser
+512 Effets à l’encaissement
+513 Chèques à encaisser
+514 Chèques à l’encaissement
+515 Cartes de crédit à encaisser
+522 Banques autres États de la zone
+523 Banques autres États
+524 Banques, escomptes
+526 Banques, intérêts courus
+53 Établissements financiers et assimilés
+531 Chèques postaux
+532 Trésor
+54 Instruments de trésorerie
+55 Instruments de monnaie électronique
+561 Crédits de trésorerie
+565 Escompte de crédits ordinaires
+572 Caisse succursale A
+573 Caisse succursale B
+581 Régies d’avances
+585 Virements de fonds
+588 Autres virements internes
+59 Dépréciations et provisions pour risques à court terme financiers
+603 Variations des stocks de biens achetés
+608 Achats d’emballages
+611 Transports sur achats
+612 Transports sur ventes
+613 Transports pour le compte de tiers
+614 Transports du personnel
+618 Autres frais de transport
+621 Sous-traitance générale
+623 Redevances de location-acquisition
+626 Études, recherches et documentation
+627 Publicité, publications, relations publiques
+634 Redevances pour brevets, licences, logiciels
+635 Cotisations
+637 Rémunérations de personnel extérieur à l’entité
+638 Autres charges externes
+641 Impôts et taxes directs
+645 Impôts et taxes indirects
+646 Droits d’enregistrement
+647 Pénalités et amendes fiscales
+648 Autres impôts et taxes
+651 Pertes sur créances clients et autres débiteurs
+654 Valeurs comptables des cessions courantes d’immobilisations
+656 Perte de change sur créances et dettes commerciales
+657 Pénalités et amendes pénales
+658 Charges diverses
+659 Charges pour dépréciations et provisions pour risques à court terme d’exploitation
+662 Rémunérations directes versées au personnel non national
+663 Indemnités forfaitaires versées au personnel
+666 Rémunérations et charges sociales de l’exploitant individuel
+668 Autres charges sociales
+673 Escomptes accordés
+674 Autres intérêts
+676 Pertes de change financières
+678 Pertes et charges sur risques financiers
+679 Charges pour dépréciations et provisions pour risques financiers
+691 Dotations aux provisions et dépréciations d’exploitation
+697 Dotations aux provisions et dépréciations financières
+703 Ventes de produits intermédiaires
+704 Ventes de produits résiduels
+721 Production immobilisée, immobilisations incorporelles
+722 Production immobilisée, immobilisations corporelles
+73 Variations de stocks de biens et de services produits
+751 Profits sur créances clients et autres débiteurs
+754 Produits des cessions courantes d’immobilisations
+756 Gains de change sur créances et dettes commerciales
+758 Produits divers
+759 Reprises de charges pour dépréciations et provisions pour risques à court terme d’exploitation
+771 Intérêts de prêts et créances diverses
+772 Revenus de participations et autres titres immobilisés
+773 Escomptes obtenus
+774 Revenus de placement
+776 Gains de change financiers
+778 Gains sur risques financiers
+779 Reprises de provisions financières
+781 Transferts de charges d’exploitation
+787 Transferts de charges financières
+791 Reprises de provisions et dépréciations d’exploitation
+797 Reprises de provisions et dépréciations financières
+85 Dotations hors activités ordinaires
+86 Reprises hors activités ordinaires
+87 Participation des travailleurs
+88 Subventions d’équilibre
+892 Rappel d’impôts sur résultats antérieurs
+895 Impôt minimum forfaitaire
+899 Dégrèvements d’impôts sur résultats antérieurs`.split("\n").reduce((o,l)=>{const i=l.indexOf(" ");o[l.slice(0,i)]=l.slice(i+1);return o},{}));
+let S={j:[],im:[],c:{},st:[],co:""};try{S=Object.assign(S,JSON.parse(localStorage.getItem("compta")||"{}"))}catch(e){}
+let dbDoc=null,tm,sync="Données locales uniquement : configurez GitHub pour activer la synchronisation.";
+const upd=()=>{const e=$("#sy");if(e)e.textContent=sync};
+const save=()=>{S.ts=Date.now();try{localStorage.setItem("compta",JSON.stringify(S))}catch(e){}
+if(window.GitHubBridge && window.GitHubBridge.isConnected()){clearTimeout(tm);tm=setTimeout(()=>window.GitHubBridge.pushToGitHub(),1000)}};
+const $=s=>document.querySelector(s),f2=x=>(+x||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function ti(c){c=String(c).trim();if(S.c[c])return S.c[c];for(let n=Math.min(c.length,6);n>=2;n--){const p=c.slice(0,n);if(S.c[p])return S.c[p];if(REF[p])return REF[p]}return""}
+const tabs=["Saisie","Journal","Balance","TVA","Immobilisations","Stocks","Clients","Fournisseurs","Bilan","Compte de résultat","Flux de trésorerie","Paramètres","Données"];let tab=0,msg="",im="",sm="",dm="",fiche=-1;const nb=v=>+String(v).replace(",",".")||0;
+$("#nav").innerHTML=tabs.map((t,i)=>`<button data-i="${i}">${t}</button>`).join("");
+$("#nav").onclick=e=>{if(e.target.dataset.i){tab=+e.target.dataset.i;msg="";draw()}};
+const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")},fd=s=>s?String(s).split("-").reverse().join("/"):"",td=s=>{const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(s).trim());if(!m)return null;const d=new Date(+m[3],+m[2]-1,+m[1]);return d.getDate()==+m[1]&&d.getMonth()==+m[2]-1?m[3]+"-"+m[2]+"-"+m[1]:null};
+function pieces(){const m={};S.j.forEach(l=>{m[l.p]=(m[l.p]||0)+l.db-l.cr});return m}
+function saisie(){return `<div class="card"><p class="msg ${msg.startsWith("!")?"bad":"ok"}" id="fm" role="alert">${esc(msg.replace(/^!/,""))}</p><form id="fs" novalidate>
+<label>Date (jj/mm/aaaa)<input name="d" id="dt" inputmode="numeric" placeholder="jj/mm/aaaa" maxlength="10" pattern="\d{2}/\d{2}/\d{4}" title="jj/mm/aaaa" value="${fd(today())}" required></label>
+<label>Numéro de pièce<input name="p" required value="${esc(sessionStorage.p||"")}"></label>
+<label>Compte<input name="c" inputmode="numeric" required autocomplete="off" id="cc"></label>
+<label class="w2">Intitulé<input name="t" id="tt" placeholder="Rempli automatiquement" required></label>
+<label class="f">Libellé<input name="l"></label>
+<label class="w2">Client ou fournisseur (comptes 40 et 41)<input name="tr" list="tl" autocomplete="off"></label><label>Échéance (jj/mm/aaaa)<input name="ec" id="ec" inputmode="numeric" maxlength="10" placeholder="automatique"></label><datalist id="tl">${[...new Set(S.j.filter(l=>l.tr).map(l=>l.tr))].map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+<label>Montant débité<input name="db" inputmode="decimal"></label>
+<label>Montant crédité<input name="cr" inputmode="decimal"></label>
+<div class="f"><button class="p">Ajouter la ligne</button></div></form></div>`}
+function journal(){const b=pieces();return `<div class="card t">${S.j.length?`<table><thead><tr><th>Date</th><th>Pièce</th><th>Compte</th><th>Intitulé</th><th>Libellé</th><th class="n">Débit</th><th class="n">Crédit</th><th>Pièce</th><th></th></tr></thead><tbody>`+S.j.map((l,i)=>{const e=Math.round(b[l.p]*100)/100;return `<tr><td>${fd(l.d)}</td><td>${esc(l.p)}</td><td>${esc(l.c)}</td><td>${esc(l.t)}${l.tr?" ("+esc(l.tr)+")":""}</td><td>${esc(l.l)}</td><td class="n">${l.db?f2(l.db):""}</td><td class="n">${l.cr?f2(l.cr):""}</td><td class="${e?"bad":"ok"}">${e?"écart "+f2(e):"équilibrée"}</td><td><button class="g" data-del="${i}" a

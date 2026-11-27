@@ -1,0 +1,96 @@
+{
+  "j": [
+    {
+      "d": "2026-11-25",
+      "p": "IM-2026-001",
+      "c": "245000",
+      "t": "Matériel de transport",
+      "l": "Acquisition d’immobilisation — Véhicule d'occasion",
+      "db": 20000,
+      "cr": 0,
+      "imId": "IM-1795589890364-1"
+    },
+    {
+      "d": "2026-11-25",
+      "p": "IM-2026-001",
+      "c": "481",
+      "t": "Fournisseurs d’investissements",
+      "l": "Acquisition d’immobilisation — Véhicule d'occasion",
+      "db": 0,
+      "cr": 20000,
+      "imId": "IM-1795589890364-1"
+    },
+    {
+      "d": "2026-11-25",
+      "p": "Ac2",
+      "c": "311000",
+      "t": "Marchandises A",
+      "l": "Stock initial — Banane",
+      "db": 300,
+      "cr": 0,
+      "stockId": "ST-1795592815923"
+    },
+    {
+      "d": "2026-11-25",
+      "p": "Ac2",
+      "c": "6031",
+      "t": "Variations de stock",
+      "l": "Contrepartie du stock initial — Banane",
+      "db": 0,
+      "cr": 300,
+      "stockId": "ST-1795592815923"
+    },
+    {
+      "d": "2026-12-31",
+      "p": "DOT-2026",
+      "c": "681300",
+      "t": "Dotations aux amortissements d’exploitation",
+      "l": "Dotation annuelle — Véhicule d'occasion",
+      "db": 666.67,
+      "cr": 0,
+      "imId": "IM-1795589890364-1"
+    },
+    {
+      "d": "2026-12-31",
+      "p": "DOT-2026",
+      "c": "284500",
+      "t": "Amortissements du matériel",
+      "l": "Dotation annuelle — Véhicule d'occasion",
+      "db": 0,
+      "cr": 666.67,
+      "imId": "IM-1795589890364-1"
+    }
+  ],
+  "im": [
+    {
+      "id": "IM-1795589890364-1",
+      "nm": "Véhicule d'occasion",
+      "d": "2026-11-25",
+      "ms": "2026-11-25",
+      "c": "245000",
+      "v": 20000,
+      "vr": 0,
+      "n": 5,
+      "pc": "481",
+      "pt": "Fournisseurs d’investissements",
+      "p": "IM-2026-001"
+    }
+  ],
+  "c": {
+    "681300": "Dotations aux amortissements d’exploitation"
+  },
+  "st": [
+    {
+      "id": "ST-1795592815923",
+      "nm": "Banane",
+      "c": "311000",
+      "q": 6,
+      "u": 50
+    }
+  ],
+  "co": "",
+  "p": {
+    "dev": "USD"
+  },
+  "ts": 1795811405426
+}

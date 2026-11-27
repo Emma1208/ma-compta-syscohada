@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f5f8b">
 <link rel="manifest" href="./manifest.json">
-<title>Compta SYSCOHADA</title>
+<title>Compta SYSCOHADA | Gestion comptable</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
@@ -33,21 +33,355 @@ th{background:var(--hd);text-align:left;padding:7px;white-space:nowrap}td{paddin
 .em{color:var(--mut);padding:18px 0;text-align:center}
 .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.two .card{margin:0}.tb{margin-bottom:10px}#ph{display:none}.inv{border-color:var(--bad)!important;outline:2px solid var(--bad)}
 @media print{body *{visibility:hidden!important}#fiche-immo,#fiche-immo *{visibility:visible!important}#fiche-immo{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}#fiche-immo button{display:none!important}:root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mut:#333;--line:#999;--hd:#eee;--ok:#000;--bad:#000}nav,.np,form,button,textarea{display:none!important}body{max-width:none;padding:0}.card{border:0;padding:0}#ph{display:block;font-size:14px;margin-bottom:10px;border-bottom:2px solid #000;padding-bottom:6px}}
+
+/* --- Modernisation visuelle --- */
+:root{
+  --acc:#1769aa;--acc2:#0f4f83;--soft:#eaf3fb;--shadow:0 8px 24px rgba(20,40,70,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--soft:#20364b;--shadow:0 8px 24px rgba(0,0,0,.18)}
+}
+:root[data-theme="dark"]{--soft:#20364b;--shadow:0 8px 24px rgba(0,0,0,.18)}
+body{max-width:1180px;padding:22px 18px 56px;line-height:1.55}
+h1{font:700 clamp(23px,3vw,30px)/1.2 "Segoe UI",system-ui,sans-serif;letter-spacing:-.5px;margin:8px 0 6px}
+p.s{font-size:14px;margin-bottom:18px}
+#github-zone{box-shadow:var(--shadow);border-radius:14px!important}
+#github-zone>div:first-child{gap:9px!important}
+#gh-user-status{display:inline-flex;align-items:center;min-height:34px;padding:6px 11px;border-radius:999px;background:var(--soft)}
+nav{gap:6px;border:0;padding:5px;margin:0 0 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+nav button{border:0!important;border-radius:8px;margin:0!important;padding:10px 14px;transition:background .18s,color .18s}
+nav button:hover{background:var(--soft);color:var(--acc)}
+nav button.on{background:var(--soft);color:var(--acc);font-weight:700}
+.card{border-radius:13px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--line) 78%,transparent)}
+.two .card{margin:0}
+form{gap:13px}
+label{font-size:12px;font-weight:650;letter-spacing:.15px;gap:6px}
+input,select,textarea{border-radius:9px;padding:10px 11px;min-height:42px;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 17%,transparent)}
+button.p,button.g{border-radius:9px;min-height:38px;transition:transform .12s,filter .12s,background .12s}
+button.p{background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 3px 9px rgba(23,105,170,.18)}
+button.p:hover{filter:brightness(1.07);transform:translateY(-1px)}
+button.g{background:var(--card)}
+button.g:hover{background:var(--soft);border-color:var(--acc);color:var(--acc)}
+.t{border-radius:9px}
+table{font-size:13px}
+th{position:sticky;top:0;background:var(--hd);font-weight:700}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--hd) 38%,transparent)}
+tbody tr:hover{background:var(--soft)}
+td,th{padding:9px 8px}
+.k{padding:11px 2px}
+.msg{padding:4px 0}
+.em{padding:28px 12px}
+#pdf,#xlsx-export{margin-bottom:12px}
+#ph{display:none}
+@media(max-width:640px){
+ body{padding:14px 10px 36px}
+ .card{padding:13px;border-radius:11px}
+ nav{margin-left:-2px;margin-right:-2px}
+ nav button{padding:9px 11px;font-size:13px}
+ .w2{grid-column:1/-1}
+ form{grid-template-columns:1fr 1fr}
+ .f{grid-column:1/-1}
+ #github-zone>div:first-child{align-items:stretch!important}
+ #gh-user-status{width:100%;border-radius:8px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+
+
+/* Refonte A — interface professionnelle bleu marine / blanc */
+:root{
+  --bg:#f3f6fa;
+  --card:#ffffff;
+  --ink:#172b4d;
+  --mut:#64748b;
+  --line:#dce4ee;
+  --acc:#1769aa;
+  --acc2:#104f82;
+  --soft:#eaf3fb;
+  --hd:#edf3f8;
+  --ok:#168454;
+  --bad:#bd3535;
+  --shadow:0 5px 18px rgba(22,48,80,.055);
+  color-scheme:light;
+}
+body{
+  max-width:1440px;
+  margin:0 auto;
+  padding:26px clamp(14px,3vw,38px) 64px;
+  background:var(--bg);
+  color:var(--ink);
+  font:14px/1.55 "Segoe UI",Arial,sans-serif;
+}
+.app-header{
+  display:flex;align-items:center;gap:16px;
+  padding:23px 26px;margin:0 0 20px;
+  color:#fff;background:linear-gradient(115deg,#123b63 0%,#1769aa 72%,#2582bd 100%);
+  border-radius:17px;box-shadow:0 10px 26px rgba(17,67,108,.16);
+  position:relative;overflow:hidden;
+}
+.app-header:after{
+  content:"";position:absolute;width:240px;height:240px;border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;right:-65px;top:-125px;box-shadow:0 0 0 28px rgba(255,255,255,.035),0 0 0 58px rgba(255,255,255,.025);
+}
+.brand-mark{
+  display:grid;place-items:center;flex:0 0 54px;height:54px;border-radius:15px;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);
+  font-size:27px;font-weight:800;letter-spacing:-1px;
+}
+.brand-copy{min-width:0;position:relative;z-index:1}
+.app-header .eyebrow{font-size:10px;font-weight:750;letter-spacing:1.55px;color:#c6e4fa;margin-bottom:4px}
+.app-header h1{font:750 clamp(21px,2.7vw,29px)/1.2 "Segoe UI",Arial,sans-serif;letter-spacing:-.5px;margin:0 0 5px;color:#fff}
+.app-header .s{font-size:13px;color:#e1eef8;margin:0}
+.header-badge{
+  margin-left:auto;align-self:center;white-space:nowrap;position:relative;z-index:1;
+  display:flex;align-items:center;gap:8px;padding:9px 12px;
+  color:#eaf7ff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:999px;font-size:11px;font-weight:650;
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#70e1a4;box-shadow:0 0 0 4px rgba(112,225,164,.14)}
+#github-zone{
+  border:1px solid var(--line)!important;border-radius:13px!important;
+  background:var(--card)!important;box-shadow:var(--shadow);padding:14px 16px!important;
+}
+#gh-user-status{font-size:12px!important}
+nav{
+  display:flex;gap:5px;overflow-x:auto;align-items:center;
+  margin:0 0 17px;padding:7px;background:#fff;
+  border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);
+  scrollbar-width:thin;
+}
+nav button{
+  flex:0 0 auto;border:0!important;border-radius:8px!important;
+  padding:10px 14px!important;margin:0!important;color:#52647b;
+  font-size:13px;font-weight:600;transition:background .15s,color .15s;
+}
+nav button:hover{background:#f0f6fc;color:var(--acc)}
+nav button.on{background:var(--soft)!important;color:var(--acc)!important;font-weight:750}
+#pdf,#xlsx-export{padding:9px 13px!important}
+#sy{font-weight:600}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:13px;
+  padding:19px;margin-bottom:16px;box-shadow:var(--shadow);
+}
+.two{gap:16px}
+.two .card{margin:0}
+form{gap:13px}
+label{font-size:12px;font-weight:650;color:#53657c;gap:6px}
+input,select,textarea{
+  width:100%;min-height:41px;padding:9px 11px;border:1px solid #d3deea;
+  border-radius:8px;background:#fff;color:var(--ink);font:inherit;
+  transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{
+  outline:0;border-color:var(--acc);box-shadow:0 0 0 3px rgba(23,105,170,.12);
+}
+button.p,button.g{min-height:37px;border-radius:8px;font-weight:650;cursor:pointer}
+button.p{background:linear-gradient(135deg,#1769aa,#12558d);box-shadow:0 3px 8px rgba(23,105,170,.16)}
+button.p:hover{filter:brightness(1.06);transform:translateY(-1px)}
+button.g{background:#fff;border:1px solid #d5e0eb;color:#334b67}
+button.g:hover{background:#f0f6fc;border-color:#9abbd8;color:#145b94}
+.t{overflow:auto;border:1px solid var(--line);border-radius:9px}
+table{border-collapse:collapse;width:100%;font-size:13px;background:#fff}
+th{position:sticky;top:0;background:#edf3f8;color:#344b65;text-align:left;font-weight:750;white-space:nowrap}
+th,td{padding:10px 9px}
+td{border-top:1px solid #e7edf3}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody tr:hover{background:#edf6fd}
+tfoot td{font-weight:750;border-top:2px solid #b9c9d9}
+.k{padding:11px 2px;border-top:1px solid #e9eef4}
+.msg{font-size:12px;min-height:20px}
+.em{padding:32px 14px;color:var(--mut)}
+@media(max-width:720px){
+  body{padding:13px 10px 40px}
+  .app-header{padding:18px 15px;gap:11px;border-radius:13px;flex-wrap:wrap}
+  .brand-mark{flex-basis:43px;height:43px;border-radius:12px;font-size:22px}
+  .header-badge{margin-left:54px;margin-top:-5px;padding:6px 10px}
+  .app-header .eyebrow{font-size:9px}
+  .app-header h1{font-size:21px}
+  .app-header .s{font-size:12px}
+  .card{padding:14px;border-radius:11px}
+  nav{margin-bottom:13px;padding:5px}
+  nav button{padding:9px 11px!important;font-size:12px}
+  form{grid-template-columns:1fr 1fr}
+  .w2,.f{grid-column:1/-1}
+  #github-zone{padding:12px!important}
+  #github-zone>div:first-child{align-items:stretch!important}
+  #gh-user-status{width:100%;border-radius:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition:none!important;scroll-behavior:auto!important}
+}
+@media print{
+  body{background:#fff!important;padding:0!important}
+  .app-header{display:none!important}
+}
+
+
+/* Palette jaune — remplacement des surfaces blanches */
+:root{
+  --bg:#fff8dc;
+  --card:#fff2b8;
+  --line:#e7d58b;
+  --soft:#ffeb99;
+  --hd:#f8e7a2;
+  --shadow:0 5px 18px rgba(116,88,12,.08);
+}
+body{background:#fff8dc!important}
+.card,#github-zone,nav,.t,table,
+input,select,textarea,button.g{
+  background-color:#fff2b8!important;
+}
+th{background:#f5e39a!important;color:#34445b}
+tbody tr:nth-child(even){background:#fff7d8!important}
+tbody tr:hover{background:#ffedaa!important}
+td{border-color:#eadca8}
+input,select,textarea{border-color:#dfcc7c!important}
+input:focus,select:focus,textarea:focus{
+  border-color:#b68a13!important;
+  box-shadow:0 0 0 3px rgba(182,138,19,.15)!important;
+}
+button.g{border-color:#dfcc7c!important;color:#5b4812!important}
+button.g:hover{background:#ffe99a!important;border-color:#c5a63e!important}
+nav button{color:#67551d}
+nav button:hover{background:#ffedaa!important;color:#795d0b}
+nav button.on{background:#ffdf70!important;color:#604600!important}
+#github-zone{border-color:#e7d58b!important}
+@media print{
+  body,.card,.t,table,td,th{background:#fff!important}
+}
+
+
+/* Contraste renforcé : le jaune reste dans les surfaces, jamais sur les écritures */
+:root,
+:root:not([data-theme="light"]),
+:root[data-theme="dark"]{
+  color-scheme:light!important;
+  --bg:#fff8df;
+  --card:#fff3bd;
+  --ink:#202b3c;
+  --mut:#526176;
+  --line:#e3cf83;
+  --acc:#175b91;
+  --acc2:#104675;
+  --soft:#ffe79a;
+  --hd:#f5df91;
+  --ok:#087747;
+  --bad:#b42318;
+}
+html{color-scheme:light!important}
+body{background:#fff8df!important;color:#202b3c!important}
+.card,#github-zone,nav{background:#fff3bd!important}
+label,.k,.em,.msg{color:#344258!important}
+input,select,textarea{
+  background:#fff9e6!important;
+  color:#202b3c!important;
+  caret-color:#175b91;
+}
+input::placeholder,textarea::placeholder{color:#788397!important;opacity:1}
+.t,table{background:#fffaf0!important}
+table,thead,tbody,tfoot,tr,td,th{color:#202b3c!important}
+th{background:#f3df9c!important;color:#26364c!important}
+td{background:#fffaf0!important;border-color:#e5d9b2!important}
+tbody tr:nth-child(even) td{background:#fff3cf!important}
+tbody tr:hover td{background:#ffebad!important}
+tfoot td{background:#f8e6ad!important;color:#1c2b40!important}
+nav button{color:#344258!important}
+nav button.on{background:#ffe39a!important;color:#104f82!important}
+button.g{background:#fff0b8!important;color:#26364c!important}
+button.p{color:#fff!important}
+.app-header,.app-header *{color:#fff}
+.app-header .eyebrow{color:#c6e4fa!important}
+.app-header .s{color:#e1eef8!important}
+.header-badge{color:#eaf7ff!important}
+.ok{color:#087747!important}
+.bad{color:#b42318!important}
+@media print{
+  body,table,td,th{color:#000!important;background:#fff!important}
+}
+
+
+/* Thème noir professionnel — remplacement des surfaces jaunes */
+:root{
+  color-scheme:dark!important;
+  --bg:#101317;
+  --card:#1a2028;
+  --ink:#f1f5f9;
+  --mut:#b7c2d0;
+  --line:#343e4b;
+  --acc:#4da3e6;
+  --acc2:#2479bd;
+  --soft:#24384b;
+  --hd:#26313d;
+  --ok:#45c58a;
+  --bad:#ff7777;
+  --shadow:0 7px 22px rgba(0,0,0,.25);
+}
+html{background:#101317!important;color-scheme:dark!important}
+body{background:#101317!important;color:#f1f5f9!important}
+.card,#github-zone,nav{
+  background:#1a2028!important;
+  border-color:#343e4b!important;
+}
+input,select,textarea{
+  background:#111820!important;color:#f1f5f9!important;
+  border-color:#465363!important;
+}
+input::placeholder,textarea::placeholder{color:#98a6b7!important;opacity:1}
+.t,table{background:#151b22!important;border-color:#343e4b!important}
+table,thead,tbody,tfoot,tr,td,th{color:#eef3f8!important}
+th{background:#26313d!important;color:#fff!important}
+td{background:#171e26!important;border-color:#343e4b!important}
+tbody tr:nth-child(even) td{background:#1d2630!important}
+tbody tr:hover td{background:#26384a!important}
+tfoot td{background:#26313d!important;color:#fff!important}
+label,.k,.em,.msg{color:#c2ccd8!important}
+nav button{color:#c5d0dc!important}
+nav button:hover{background:#26384a!important;color:#fff!important}
+nav button.on{background:#254b6b!important;color:#fff!important}
+button.g{
+  background:#252e39!important;color:#f1f5f9!important;
+  border-color:#465363!important;
+}
+button.g:hover{background:#334354!important;border-color:#659ac5!important}
+button.p{
+  background:linear-gradient(135deg,#1769aa,#104675)!important;
+  color:#fff!important;
+}
+.app-header{background:linear-gradient(115deg,#101e2d 0%,#16466e 72%,#1d679d 100%)!important}
+.app-header,.app-header *{color:#fff}
+.app-header .eyebrow{color:#c6e4fa!important}
+.app-header .s{color:#e1eef8!important}
+.header-badge{color:#eaf7ff!important}
+.live-dot{background:#70e1a4!important}
+.ok{color:#45c58a!important}
+.bad{color:#ff7777!important}
+a{color:#73bfff}
+@media print{
+  body,table,td,th,.card{color:#000!important;background:#fff!important}
+}
+
 </style></head><body>
-<h1>Comptabilité SYSCOHADA</h1>
-<p class="s">Connectez-vous avec votre Personal Access Token (PAT) GitHub pour synchroniser vos données sur votre dépôt.</p>
+<header class="app-header">
+  <div class="brand-mark" aria-hidden="true">S</div>
+  <div class="brand-copy">
+    <div class="eyebrow">ESPACE DE GESTION FINANCIÈRE</div>
+    <h1>Comptabilité SYSCOHADA</h1>
+    <p class="s">Saisie comptable, suivi des opérations et production des états financiers.</p>
+  </div>
+  <div class="header-badge"><span class="live-dot"></span> Sauvegarde automatique</div>
+</header>
 <div class="card np tb" id="github-zone" style="margin-bottom:14px; background:var(--card); padding:12px; border:1px solid var(--line); border-radius:8px;">
   <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
     <button class="g" id="gh-config-toggle" style="font-weight:600;">⚙️ Configurer GitHub BDD</button>
     <button class="g" id="gh-sync-now" style="display:none;">🔄 Synchroniser</button>
     <button class="g" id="gh-disconnect" style="display:none; color:var(--bad);">Déconnecter GitHub</button>
-    <span id="gh-user-status" style="font-size:12px; color:var(--mut);">Non connecté à GitHub (Stockage local uniquement)</span>
+    <span id="gh-user-status" style="font-size:12px; color:var(--mut);">Non connecté à GitHub (Enregistrement local automatique)</span>
   </div>
   <div id="gh-config-form" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid var(--line);">
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:10px;">
       <label>Utilisateur / Org GitHub<input type="text" id="gh-owner" placeholder="ex: votre-pseudo"></label>
       <label>Nom du Dépôt (Repo)<input type="text" id="gh-repo" placeholder="ex: mon-depot-compta"></label>
-      <label>Chemin du fichier<input type="text" id="gh-path" value="compta_db.json"></label>
+      <label>Chemin du fichier<input type="text" id="gh-path" value="bdd.json"></label>
       <label>Personal Access Token (PAT)<input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx"></label>
     </div>
     <div style="display:flex; gap:10px;">
@@ -351,8 +685,20 @@ Object.assign(REF,`102 Capital par dotation et complément de dotation
 let S={j:[],im:[],c:{},st:[],co:""};try{S=Object.assign(S,JSON.parse(localStorage.getItem("compta")||"{}"))}catch(e){}
 let dbDoc=null,tm,sync="Données locales uniquement : configurez GitHub pour activer la synchronisation.";
 const upd=()=>{const e=$("#sy");if(e)e.textContent=sync};
-const save=()=>{S.ts=Date.now();try{localStorage.setItem("compta",JSON.stringify(S))}catch(e){}
-if(window.GitHubBridge && window.GitHubBridge.isConnected()){clearTimeout(tm);tm=setTimeout(()=>window.GitHubBridge.pushToGitHub(),1000)}};
+const save=()=>{
+  S.ts=Date.now();
+  try{
+    localStorage.setItem("compta",JSON.stringify(S));
+    sync="Enregistré automatiquement sur cet appareil.";
+  }catch(e){
+    sync="Espace de stockage local insuffisant : exportez une sauvegarde.";
+  }
+  upd();
+  if(window.GitHubBridge && window.GitHubBridge.isConnected()){
+    clearTimeout(tm);
+    tm=setTimeout(()=>window.GitHubBridge.pushToGitHub(),900);
+  }
+};
 const $=s=>document.querySelector(s),f2=x=>(+x||0).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function ti(c){c=String(c).trim();if(S.c[c])return S.c[c];for(let n=Math.min(c.length,6);n>=2;n--){const p=c.slice(0,n);if(S.c[p])return S.c[p];if(REF[p])return REF[p]}return""}
@@ -418,7 +764,7 @@ function bilan(){const m={};J("",(S.p||{}).df).forEach(l=>m[l.c]=(m[l.c]||0)+l.d
 Object.keys(m).forEach(c=>{const s=m[c],k=c[0],p=+c.slice(0,2);if(k=="1"){p>=16&&p<=19?P.f-=s:P.k-=s}else if(k=="2")A.i+=s;else if(k=="3")A.s+=s;else if(k=="4"){s>0?A.c+=s:P.e-=s}else if(k=="5"){s>0?A.t+=s:P.t-=s}else if("678".includes(k))R-=s});
 P.k+=R;const TA=A.i+A.s+A.c+A.t,TP=P.k+P.f+P.e+P.t,r=(l,v)=>`<div class="k"><span>${l}</span><b>${f2(v)}</b></div>`,ec=Math.round((TA-TP)*100)/100;
 return `<div class="two"><div class="card"><b>Actif</b>${r("Immobilisations nettes",A.i)}${r("Stocks nets",A.s)}${r("Créances et autres actifs",A.c)}${r("Trésorerie actif",A.t)}${r("Total actif",TA)}</div><div class="card"><b>Passif</b>${r("Capitaux propres",P.k)}${r("Dettes financières",P.f)}${r("Dettes d’exploitation",P.e)}${r("Trésorerie passif",P.t)}${r("Total passif",TP)}</div></div><p class="msg ${ec?"bad":"ok"}">Résultat de l’exercice inclus dans les capitaux propres : ${f2(R)}. ${ec?"Écart actif moins passif : "+f2(ec)+". Vérifiez l’équilibre des pièces dans le journal.":"Le bilan est équilibré."}</p>`}
-function donnees(){return `<div class="card"><p><button class="p" id="dl">Télécharger la sauvegarde</button> <label class="g" style="display:inline-block;padding:10px;border:1px solid var(--line);border-radius:6px;cursor:pointer">Importer un fichier<input type="file" id="fl" accept=".json" style="display:none"></label></p><p class="s" style="color:var(--mut);font-size:13px">Si le téléchargement ne démarre pas, copiez le texte ci-dessous et collez-le plus tard dans la même zone.</p><textarea id="ta" rows="6" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px">${esc(JSON.stringify(S))}</textarea><p><button class="g" id="rs">Restaurer depuis le texte</button> <button class="g" id="rz">Tout effacer</button></p><p class="msg ${dm.startsWith("!")?"bad":"ok"}">${esc(dm.replace(/^!/,""))}</p></div>`}
+function donnees(){return `<div class="card"><p><button class="p" id="dl">Télécharger une sauvegarde JSON</button> <label class="g" style="display:inline-block;padding:10px;border:1px solid var(--line);border-radius:6px;cursor:pointer">Importer un fichier<input type="file" id="fl" accept=".json" style="display:none"></label></p><p class="s" style="color:var(--mut);font-size:13px">Sauvegarde locale automatique active. Si GitHub est connecté, les changements sont également envoyés automatiquement vers bdd.json. Vous pouvez aussi exporter ou restaurer une copie JSON.</p><textarea id="ta" rows="6" style="width:100%;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px">${esc(JSON.stringify(S))}</textarea><p><button class="g" id="rs">Restaurer depuis le texte</button> <button class="g" id="rz">Tout effacer</button></p><p class="msg ${dm.startsWith("!")?"bad":"ok"}">${esc(dm.replace(/^!/,""))}</p></div>`}
 const P=()=>S.p||(S.p={dev:"USD"}),J=(a,b)=>S.j.filter(l=>(!a||l.d>=a)&&(!b||l.d<=b)),G=(L,ps,sg)=>L.filter(l=>ps.some(p=>l.c.startsWith(p))).reduce((a,l)=>a+sg*(l.cr-l.db),0),pr=(l,v)=>`<div class="k"><span>${l}</span><b>${f2(v)}</b></div>`;
 function params(){const p=P(),F=[["nm","Raison sociale","text","w2"],["fj","Forme juridique (SARL, SA)"],["cap","Capital social"],["rccm","N° RCCM"],["nif","Id. nat. ou NIF"],["adr","Adresse","text","w2"],["tel","Téléphone"],["em","E-mail"],["gr","Gérant ou directeur"],["dev","Devise"],["dl","Délai de paiement par défaut (jours)"],["dd","Début de l’exercice","date"],["df","Fin de l’exercice","date"]];
 return `<div class="card"><form id="fp" onsubmit="return false">${F.map(([n,l,t,c])=>`<label class="${c||""}">${l}<input name="${n}" type="${t||"text"}" value="${esc(p[n]||"")}"></label>`).join("")}</form><p class="msg">Ces informations figurent dans l’en-tête des PDF. Les dates de l’exercice limitent le compte de résultat, le flux de trésorerie et le bilan.</p></div>`}
@@ -538,13 +884,14 @@ window.ComptaBridge = {
 (function() {
   let ghSha = "";
   let isSyncing = false;
+  let pendingPush = false;
   let autoSyncInterval = null;
 
   function getGhCreds() {
     return {
       owner: localStorage.getItem("gh_owner") || "",
       repo: localStorage.getItem("gh_repo") || "",
-      path: localStorage.getItem("gh_path") || "compta_db.json",
+      path: localStorage.getItem("gh_path") || "bdd.json",
       token: localStorage.getItem("gh_token") || ""
     };
   }
@@ -573,7 +920,7 @@ window.ComptaBridge = {
       if (syncBtn) syncBtn.style.display = "";
       if (discoBtn) discoBtn.style.display = "";
     } else {
-      if (statusEl) statusEl.textContent = "Non connecté à GitHub (Stockage local uniquement)";
+      if (statusEl) statusEl.textContent = "Non connecté à GitHub (Enregistrement local automatique)";
       if (statusEl) statusEl.style.color = "var(--mut)";
       if (syncBtn) syncBtn.style.display = "none";
       if (discoBtn) discoBtn.style.display = "none";
@@ -638,7 +985,11 @@ window.ComptaBridge = {
 
   async function pushToGitHub(force = false) {
     if (!isConnected()) return;
-    if (isSyncing && !force) return;
+    if (isSyncing) {
+      pendingPush = true;
+      return;
+    }
+    pendingPush = false;
     const creds = getGhCreds();
     window.ComptaBridge.setStatus("Sauvegarde sur votre dépôt GitHub en cours...");
     isSyncing = true;
@@ -679,6 +1030,10 @@ window.ComptaBridge = {
       console.error("GitHub Push Error:", err);
     } finally {
       isSyncing = false;
+      if (pendingPush && isConnected()) {
+        pendingPush = false;
+        setTimeout(() => pushToGitHub(), 350);
+      }
     }
   }
 
@@ -719,7 +1074,7 @@ window.ComptaBridge = {
       saveBtn.onclick = async () => {
         const o = ownerInput.value.trim();
         const r = repoInput.value.trim();
-        const p = pathInput.value.trim() || "compta_db.json";
+        const p = pathInput.value.trim() || "bdd.json";
         const t = tokenInput.value.trim();
 
         if (!o || !r || !t) {
@@ -741,7 +1096,7 @@ window.ComptaBridge = {
     if (discoBtn) {
       discoBtn.onclick = () => {
         if (confirm("Voulez-vous déconnecter le dépôt GitHub ? Les données restent enregistrées localement.")) {
-          saveGhCreds("", "", "compta_db.json", "");
+          saveGhCreds("", "", "bdd.json", "");
           ghSha = "";
           updateUiStatus();
           window.ComptaBridge.setStatus("Déconnecté de GitHub. Données conservées localement.");
